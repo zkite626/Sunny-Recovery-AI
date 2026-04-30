@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>文学安慰 · 晴愈AI教练</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .literary-loading {
+      text-align: center;
+      padding: var(--sp-16) var(--sp-8);
+    }
+
+    .literary-loading .spinner {
+      width: 36px;
+      height: 36px;
+      margin: 0 auto var(--sp-4);
+    }
+
+    .literary-actions {
+      display: flex;
+      gap: var(--sp-3);
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+
+    .copy-toast {
+      position: fixed;
+      top: var(--sp-6);
+      left: 50%;
+      transform: translateX(-50%) translateY(-20px);
+      background: rgba(62,46,31,0.88);
+      color: #fff;
+      padding: var(--sp-2) var(--sp-5);
+      border-radius: var(--r-full);
+      font-size: var(--text-sm);
+      opacity: 0;
+      transition: all 0.3s ease;
+      z-index: 100;
+    }
+
+    .copy-toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(0);
+    }
+  </style>
+</head>
+<body>
+  <div class="sunshine">
+    <div class="orb orb--1"></div>
+    <div class="orb orb--2"></div>
+    <div class="orb orb--3"></div>
+  </div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <div class="page page-enter">
+      <!-- Progress -->
+      <div class="progress-bar">
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-line"></div>
+        <div class="progress-dot"></div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <a href="step3.html" class="btn btn-ghost btn-sm">← 上一步</a>
+      </div>
+
+      <!-- Title -->
+      <div class="text-center">
+        <h2 class="heading-section">送你一段文字</h2>
+        <p class="text-body">根据你的情绪，为你写一段治愈的文字</p>
+      </div>
+
+      <!-- Loading state -->
+      <div class="literary-loading glass" id="literaryLoading">
+        <div class="spinner"></div>
+        <p class="text-body">正在为你书写...</p>
+      </div>
+
+      <!-- Content (hidden until loaded) -->
+      <div id="literaryContent" style="display:none;" class="section">
+        <div class="literary-card" id="litCard">
+          <div class="literary-quote">"</div>
+          <div class="literary-text" id="litText"></div>
+        </div>
+
+        <div class="literary-actions">
+          <button class="btn btn-sun" onclick="copyText()">📋 复制文字</button>
+          <button class="btn btn-peach" onclick="saveAsImage()">🖼 保存为图片</button>
+          <button class="btn btn-ghost" onclick="regenerate()">✨ 再来一段</button>
+        </div>
+
+        <div class="text-center">
+          <button class="btn btn-sage btn-lg" onclick="goNext()">
+            查看我的情绪卡片 →
+          </button>
+        </div>
+      </div>
+
+      <!-- Skip -->
+      <div class="text-center">
+        <a href="step5.html" style="color:var(--text-ghost); font-size:var(--text-sm); text-decoration:none;">
+          跳过，直接查看情绪卡片
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <div class="copy-toast" id="copyToast">已复制到剪贴板</div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/emotion.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/prompt.js"></script>
+  <script>
+    const session = getCurrent();
+    let literaryContent = '';
+
+    async function generateLiterary() {
+      const emotion = EMOTION_TYPES.find(e => e.id === session.emotionType);
+      const context = `用户的情绪状态：
+- 类型：${emotion?.label || '未指定'}
+- 强度：${session.intensity || 5}/10
+- 描述：${session.emotionText || ''}
+${session.aiReply ? `- AI对话中的认知重构结果：${session.aiReply}` : ''}
+
+请为这位用户创作一段温暖治愈的文学安慰。`;
+
+      try {
+        const text = await callAI(LITERATURE_SYSTEM_PROMPT, [
+          { role: 'user', content: context }
+        ]);
+        literaryContent = text;
+        showLiterary(text);
+      } catch (err) {
+        document.getElementById('literaryLoading').innerHTML = `
+          <p class="text-body" style="color:var(--emo-ember);">
+            生成失败：${err.message}
+          </p>
+          <button class="btn btn-sun" style="margin-top:var(--sp-4);" onclick="generateLiterary()">重试</button>
+        `;
+      }
+    }
+
+    function showLiterary(text) {
+      document.getElementById('literaryLoading').style.display = 'none';
+      document.getElementById('literaryContent').style.display = 'block';
+
+      const litText = document.getElementById('litText');
+      litText.innerHTML = '';
+
+      let i = 0;
+      const chars = text.split('');
+      function addChar() {
+        if (i >= chars.length) return;
+        const span = document.createElement('span');
+        span.className = 'char';
+        span.style.animationDelay = `${i * 0.03}s`;
+        span.textContent = chars[i];
+        litText.appendChild(span);
+        i++;
+        if (i < chars.length) requestAnimationFrame(addChar);
+      }
+      requestAnimationFrame(addChar);
+
+      saveCurrent({ literaryText: text });
+    }
+
+    function copyText() {
+      navigator.clipboard.writeText(literaryContent).then(() => {
+        showCopyToast('已复制到剪贴板 ✓');
+      }).catch(() => {
+        const ta = document.createElement('textarea');
+        ta.value = literaryContent;
+        document.body.appendChild(ta);
+        ta.select();
+        document.execCommand('copy');
+        document.body.removeChild(ta);
+        showCopyToast('已复制到剪贴板 ✓');
+      });
+    }
+
+    async function saveAsImage() {
+      const card = document.getElementById('litCard');
+      if (typeof html2canvas !== 'undefined') {
+        const canvas = await html2canvas(card);
+        const link = document.createElement('a');
+        link.download = '晴愈文学安慰.png';
+        link.href = canvas.toDataURL();
+        link.click();
+      } else {
+        copyText();
+        showCopyToast('已复制文字，请手动截图保存');
+      }
+    }
+
+    async function regenerate() {
+      document.getElementById('literaryContent').style.display = 'none';
+      document.getElementById('literaryLoading').style.display = 'block';
+      document.getElementById('literaryLoading').innerHTML = `
+        <div class="spinner" style="width:36px;height:36px;margin:0 auto var(--sp-4);"></div>
+        <p class="text-body">正在为你重新书写...</p>
+      `;
+      await generateLiterary();
+    }
+
+    function showCopyToast(msg) {
+      const toast = document.getElementById('copyToast');
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2000);
+    }
+
+    function goNext() { location.href = 'step5.html'; }
+
+    generateLiterary();
+  </script>
+</body>
+</html>

@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>身体扫描 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .body-map-container {
+      display: flex;
+      align-items: flex-start;
+      justify-content: center;
+      gap: var(--sp-8);
+      flex-wrap: wrap;
+    }
+
+    .body-svg-wrap {
+      width: 200px;
+      position: relative;
+    }
+
+    .body-svg-wrap svg {
+      width: 100%;
+      height: auto;
+    }
+
+    .zone-label {
+      position: absolute;
+      left: 110%;
+      white-space: nowrap;
+      font-size: var(--text-sm);
+      color: var(--text-secondary);
+      background: rgba(255,255,255,0.7);
+      padding: 2px 10px;
+      border-radius: var(--r-full);
+      opacity: 0;
+      transform: translateX(-8px);
+      transition: all 0.3s ease;
+      pointer-events: none;
+    }
+
+    .zone-label.show {
+      opacity: 1;
+      transform: translateX(0);
+    }
+
+    .zone-list {
+      display: flex;
+      flex-direction: column;
+      gap: var(--sp-3);
+      flex: 1;
+      min-width: 200px;
+    }
+
+    .zone-item {
+      display: flex;
+      align-items: center;
+      gap: var(--sp-3);
+      padding: var(--sp-3) var(--sp-4);
+      border-radius: var(--r-sm);
+      cursor: pointer;
+      transition: all 0.3s ease;
+      background: rgba(255,255,255,0.3);
+      border: 1.5px solid transparent;
+    }
+
+    .zone-item:hover {
+      background: rgba(255,255,255,0.6);
+    }
+
+    .zone-item.active {
+      background: linear-gradient(135deg, rgba(253,160,133,0.15), rgba(246,166,35,0.1));
+      border-color: var(--peach);
+    }
+
+    .zone-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: rgba(0,0,0,0.08);
+      flex-shrink: 0;
+      transition: all 0.3s ease;
+    }
+
+    .zone-item.active .zone-dot {
+      background: var(--peach);
+      box-shadow: 0 0 8px rgba(253,160,133,0.5);
+    }
+
+    .zone-info { flex: 1; }
+
+    .zone-name {
+      font-weight: 600;
+      font-size: var(--text-sm);
+      color: var(--text-primary);
+    }
+
+    .zone-desc {
+      font-size: var(--text-xs);
+      color: var(--text-ghost);
+    }
+  </style>
+</head>
+<body>
+  <div class="sunshine">
+    <div class="orb orb--1"></div>
+    <div class="orb orb--2"></div>
+    <div class="orb orb--3"></div>
+  </div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <div class="page page-enter">
+      <!-- Progress -->
+      <div class="progress-bar">
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-line"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-line"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-line"></div>
+        <div class="progress-dot"></div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <a href="step1.html" class="btn btn-ghost btn-sm">← 上一步</a>
+      </div>
+
+      <!-- Title -->
+      <div class="text-center">
+        <h2 class="heading-section">你的身体在哪里紧张？</h2>
+        <p class="text-body">情绪会储存在身体里。点击你感到不适的部位</p>
+      </div>
+
+      <!-- Body map -->
+      <div class="glass">
+        <div class="body-map-container">
+          <!-- Body SVG -->
+          <div class="body-svg-wrap">
+            <svg viewBox="0 0 200 450" xmlns="http://www.w3.org/2000/svg">
+              <ellipse class="body-hotspot" data-zone="head" cx="100" cy="40" rx="30" ry="35"
+                fill="rgba(253,226,202,0.4)" stroke="rgba(246,166,35,0.3)" stroke-width="1.5"/>
+              <ellipse class="body-hotspot" data-zone="eyes" cx="100" cy="38" rx="20" ry="6"
+                fill="rgba(253,226,202,0.3)" stroke="rgba(246,166,35,0.2)" stroke-width="1"/>
+              <rect class="body-hotspot" data-zone="throat" x="88" y="72" width="24" height="18" rx="8"
+                fill="rgba(253,226,202,0.3)" stroke="rgba(246,166,35,0.2)" stroke-width="1"/>
+              <path class="body-hotspot" data-zone="back" d="M60,95 Q100,85 140,95 L140,160 Q100,155 60,160 Z"
+                fill="rgba(253,226,202,0.35)" stroke="rgba(246,166,35,0.25)" stroke-width="1.5"/>
+              <ellipse class="body-hotspot" data-zone="chest" cx="100" cy="125" rx="28" ry="22"
+                fill="rgba(253,226,202,0.3)" stroke="rgba(246,166,35,0.25)" stroke-width="1.5"/>
+              <ellipse class="body-hotspot" data-zone="stomach" cx="100" cy="180" rx="25" ry="20"
+                fill="rgba(253,226,202,0.3)" stroke="rgba(246,166,35,0.25)" stroke-width="1.5"/>
+              <path class="body-hotspot" data-zone="hands" d="M60,95 L40,160 L35,220 Q30,230 38,235 L48,225 L55,170 L60,160"
+                fill="rgba(253,226,202,0.3)" stroke="rgba(246,166,35,0.2)" stroke-width="1"/>
+              <path class="body-hotspot" data-zone="hands" d="M140,95 L160,160 L165,220 Q170,230 162,235 L152,225 L145,170 L140,160"
+                fill="rgba(253,226,202,0.3)" stroke="rgba(246,166,35,0.2)" stroke-width="1"/>
+              <path d="M75,200 Q100,195 125,200 L125,230 Q100,235 75,230 Z"
+                fill="rgba(253,226,202,0.2)" stroke="rgba(246,166,35,0.15)" stroke-width="1"/>
+              <path class="body-hotspot" data-zone="legs" d="M78,230 L72,340 L65,400 Q60,420 75,420 L85,420 Q90,420 88,400 L90,340 L92,230"
+                fill="rgba(253,226,202,0.3)" stroke="rgba(246,166,35,0.2)" stroke-width="1"/>
+              <path class="body-hotspot" data-zone="legs" d="M108,230 L110,340 L112,400 Q110,420 125,420 L135,420 Q140,420 138,400 L128,340 L122,230"
+                fill="rgba(253,226,202,0.3)" stroke="rgba(246,166,35,0.2)" stroke-width="1"/>
+            </svg>
+          </div>
+
+          <!-- Zone list -->
+          <div class="zone-list" id="zoneList"></div>
+        </div>
+      </div>
+
+      <!-- Selected count & next -->
+      <div class="text-center">
+        <p class="text-body" id="selectedCount" style="margin-bottom:var(--sp-3);">已选择 0 个部位</p>
+        <button class="btn btn-sun btn-lg" onclick="goNext()">继续，与AI对话 →</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/emotion.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const mode = params.get('mode') || 'personal';
+    const selectedZones = new Set();
+
+    const zoneList = document.getElementById('zoneList');
+    BODY_ZONES.forEach(zone => {
+      const item = document.createElement('div');
+      item.className = 'zone-item';
+      item.dataset.zone = zone.id;
+      item.innerHTML = `
+        <div class="zone-dot"></div>
+        <div class="zone-info">
+          <div class="zone-name">${zone.label}</div>
+          <div class="zone-desc">${zone.desc}</div>
+        </div>
+      `;
+      item.addEventListener('click', () => toggleZone(zone.id, item));
+      zoneList.appendChild(item);
+    });
+
+    document.querySelectorAll('.body-hotspot').forEach(el => {
+      el.addEventListener('click', () => {
+        const zoneId = el.dataset.zone;
+        const listItem = document.querySelector(`.zone-item[data-zone="${zoneId}"]`);
+        if (listItem) toggleZone(zoneId, listItem);
+      });
+    });
+
+    function toggleZone(zoneId, listItem) {
+      if (selectedZones.has(zoneId)) {
+        selectedZones.delete(zoneId);
+        listItem.classList.remove('active');
+        document.querySelectorAll(`.body-hotspot[data-zone="${zoneId}"]`).forEach(el => {
+          el.classList.remove('active');
+          el.style.fill = 'rgba(253,226,202,0.3)';
+        });
+      } else {
+        selectedZones.add(zoneId);
+        listItem.classList.add('active');
+        document.querySelectorAll(`.body-hotspot[data-zone="${zoneId}"]`).forEach(el => {
+          el.classList.add('active');
+          el.style.fill = 'rgba(253,160,133,0.4)';
+        });
+      }
+      document.getElementById('selectedCount').textContent = `已选择 ${selectedZones.size} 个部位`;
+    }
+
+    function goNext() {
+      saveCurrent({ bodyZones: Array.from(selectedZones) });
+      location.href = `step3.html?mode=${mode}`;
+    }
+  </script>
+</body>
+</html>

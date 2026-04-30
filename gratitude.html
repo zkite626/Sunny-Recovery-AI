@@ -1,0 +1,118 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>感恩日记 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="sunshine"><div class="orb orb--1"></div><div class="orb orb--2"></div></div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <div class="page page-enter">
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <a href="chat.html" class="btn btn-ghost btn-sm">💬 AI对话</a>
+      </div>
+
+      <div class="text-center">
+        <h2 class="heading-section">感恩日记</h2>
+        <p class="text-body">写下今天让你感恩的3件小事</p>
+      </div>
+
+      <!-- 输入区 -->
+      <div class="glass" id="inputArea">
+        <div class="gratitude-input-group">
+          <span class="gratitude-num">1</span>
+          <input type="text" class="gratitude-input" id="g1" placeholder="今天我感恩...">
+        </div>
+        <div class="gratitude-input-group">
+          <span class="gratitude-num">2</span>
+          <input type="text" class="gratitude-input" id="g2" placeholder="今天我感恩...">
+        </div>
+        <div class="gratitude-input-group">
+          <span class="gratitude-num">3</span>
+          <input type="text" class="gratitude-input" id="g3" placeholder="今天我感恩...">
+        </div>
+
+        <div class="text-center" style="margin-top:var(--sp-4);">
+          <button class="btn btn-sun" onclick="saveGratitudeEntry()">🌿 保存今天</button>
+        </div>
+      </div>
+
+      <!-- 成功提示 -->
+      <div class="glass text-center" id="successMsg" style="display:none;">
+        <span style="font-size:2rem; display:block; margin-bottom:var(--sp-3);">🌿</span>
+        <h3 class="heading-section" style="font-size:var(--text-lg);">已记录</h3>
+        <p class="text-body">感恩练习能帮助大脑关注积极面，坚持下去会有变化的</p>
+      </div>
+
+      <!-- 历史记录 -->
+      <div id="historySection" style="display:none;">
+        <h3 class="heading-section" style="font-size:var(--text-lg); text-align:center;">过往记录</h3>
+        <div class="glass" id="historyList" style="padding:0; overflow:hidden;"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script>
+    function saveGratitudeEntry() {
+      const items = [];
+      for (let i = 1; i <= 3; i++) {
+        const val = document.getElementById(`g${i}`).value.trim();
+        if (val) items.push(val);
+      }
+      if (items.length === 0) {
+        showToast('请至少写一件感恩的事');
+        return;
+      }
+
+      saveGratitude(items);
+      document.getElementById('inputArea').style.display = 'none';
+      document.getElementById('successMsg').style.display = 'block';
+      renderHistory();
+      showToast('已保存 🌿');
+    }
+
+    function renderHistory() {
+      const records = getGratitude();
+      if (records.length === 0) return;
+
+      document.getElementById('historySection').style.display = 'block';
+      const container = document.getElementById('historyList');
+      container.innerHTML = '';
+
+      [...records].reverse().slice(0, 10).forEach(r => {
+        const d = new Date(r.timestamp);
+        const dateStr = `${d.getMonth()+1}月${d.getDate()}日`;
+        const div = document.createElement('div');
+        div.className = 'gratitude-history-item';
+        div.innerHTML = `
+          <div class="gratitude-date">${dateStr}</div>
+          <ul class="gratitude-list">
+            ${r.items.map(item => `<li>${item}</li>`).join('')}
+          </ul>
+        `;
+        container.appendChild(div);
+      });
+    }
+
+    function showToast(msg) {
+      let toast = document.querySelector('.toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    renderHistory();
+  </script>
+</body>
+</html>

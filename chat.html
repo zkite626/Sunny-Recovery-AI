@@ -1,0 +1,266 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI对话 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="sunshine"><div class="orb orb--1"></div><div class="orb orb--2"></div></div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <div class="page page-enter page--chat">
+
+      <!-- Navigation -->
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <button class="btn btn-ghost btn-sm" onclick="openApiModal()">🔑 API Key</button>
+      </div>
+
+      <!-- Chat header -->
+      <div class="chat-header">
+        <div class="chat-avatar">☀️</div>
+        <div>
+          <div class="chat-name">晴愈</div>
+          <div class="chat-status">● 心理健康智能伙伴</div>
+        </div>
+      </div>
+
+      <!-- Chat messages -->
+      <div class="chat-messages" id="chatMessages"></div>
+
+      <!-- Input bar -->
+      <div class="chat-input-bar" id="chatInputBar">
+        <input type="text" class="input-line" id="chatInput"
+          placeholder="说说你的感受..." autocomplete="off">
+        <button class="btn btn-sun btn-sm" id="sendBtn" onclick="sendMessage()">发送</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal-overlay" id="apiModal">
+    <div class="modal-box" style="position:relative;">
+      <button class="modal-close" onclick="closeApiModal()">×</button>
+      <h3 class="heading-section" style="margin-bottom:var(--sp-3); font-size:var(--text-xl);">🔑 设置 API Key</h3>
+      <input type="password" class="input-line" id="apiKeyInput" placeholder="sk-..." style="margin-bottom:var(--sp-4);">
+      <button class="btn btn-sun" style="width:100%;" onclick="saveApiKey()">保存</button>
+      <p class="text-caption" style="margin-top:var(--sp-3); text-align:center;">Key 仅保存在本地浏览器</p>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/emotion.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/prompt.js"></script>
+  <script src="js/memory.js"></script>
+  <script src="js/tools.js"></script>
+  <script src="js/agent.js"></script>
+
+  <script>
+    // ── API Modal ──
+    function openApiModal() {
+      document.getElementById('apiModal').classList.add('open');
+      const input = document.getElementById('apiKeyInput');
+      if (getApiKey()) input.value = getApiKey();
+      input.focus();
+    }
+    function closeApiModal() {
+      document.getElementById('apiModal').classList.remove('open');
+    }
+    document.getElementById('apiModal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeApiModal();
+    });
+    function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (!key) return;
+      setApiKey(key);
+      closeApiModal();
+      showToast('API Key 已保存');
+    }
+
+    // ── Toast ──
+    function showToast(msg) {
+      let toast = document.querySelector('.toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+
+    // ── Init Agent ──
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    PsyAgent.init({
+      onToken(token, full) {
+        updateStreamingBubble(full);
+      },
+      onMessage(text) {
+        finalizeStreamingBubble();
+      },
+      onToolStart(name, params) {
+        showToolIndicator(name);
+      },
+      onToolEnd(name, result) {
+        removeToolIndicator();
+      },
+      onError(msg) {
+        removeLoading();
+        finalizeStreamingBubble();
+        addBubble('ai', `出错了：${msg}`);
+      }
+    });
+
+    // ── 欢迎消息 ──
+    window.addEventListener('DOMContentLoaded', () => {
+      const records = getRecords();
+      const memory = PsyMemory.recent(3);
+      let welcome = '你好呀 👋 我是晴愈，你的心理健康伙伴。';
+
+      if (memory.length > 0) {
+        const last = memory[memory.length - 1];
+        welcome += `我记得上次你说过：「${last.content.slice(0, 20)}...」。最近怎么样？`;
+      } else if (records.length > 0) {
+        welcome += '我看到你之前做过情绪记录，想聊聊最近的感受吗？';
+      } else {
+        welcome += '有什么想和我聊的吗？心情、压力、困惑都可以 ☀️';
+      }
+
+      addBubble('ai', welcome);
+    });
+
+    // ── 发送消息 ──
+    async function sendMessage() {
+      if (PsyAgent.isProcessing) return;
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      // 危机检测
+      if (detectCrisis(text)) {
+        addBubble('user', text);
+        chatInput.value = '';
+        setTimeout(() => addBubble('ai', getCrisisResponse()), 300);
+        return;
+      }
+
+      addBubble('user', text);
+      chatInput.value = '';
+      sendBtn.disabled = true;
+
+      addLoading();
+
+      // 清除旧流式气泡
+      streamingBubble = null;
+      streamStarted = false;
+
+      await PsyAgent.send(text);
+
+      sendBtn.disabled = false;
+    }
+
+    // ── Bubble helpers ──
+    let streamingBubble = null;
+    let streamStarted = false;
+
+    function addBubble(role, text) {
+      const div = document.createElement('div');
+      div.className = `chat-bubble chat-bubble--${role}`;
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      scrollDown();
+    }
+
+    function ensureStreamingBubble() {
+      if (!streamingBubble) {
+        const div = document.createElement('div');
+        div.className = 'chat-bubble chat-bubble--ai';
+        div.innerHTML = '<span class="stream-text"></span><span class="typewriter-cursor"></span>';
+        chatMessages.appendChild(div);
+        streamingBubble = div;
+      }
+      return streamingBubble;
+    }
+
+    function updateStreamingBubble(text) {
+      if (!streamStarted) {
+        streamStarted = true;
+        removeLoading();
+        ensureStreamingBubble();
+      }
+      const span = streamingBubble.querySelector('.stream-text');
+      if (span) span.textContent = text;
+      scrollDown();
+    }
+
+    function finalizeStreamingBubble() {
+      if (streamingBubble) {
+        const cursor = streamingBubble.querySelector('.typewriter-cursor');
+        if (cursor) cursor.remove();
+      }
+      streamingBubble = null;
+      streamStarted = false;
+    }
+
+    function addLoading() {
+      const div = document.createElement('div');
+      div.className = 'chat-bubble chat-bubble--ai';
+      div.id = 'loadingBubble';
+      div.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+      chatMessages.appendChild(div);
+      scrollDown();
+    }
+
+    function removeLoading() {
+      const el = document.getElementById('loadingBubble');
+      if (el) el.remove();
+    }
+
+    // ── Tool indicator ──
+    function showToolIndicator(name) {
+      removeToolIndicator();
+      const labels = {
+        body_scan: '🫁 正在启动身体扫描...',
+        generate_card: '🎨 正在生成情绪卡片...',
+        generate_comfort: '📝 正在书写治愈文字...',
+        start_breathing: '🫁 正在启动呼吸引导...',
+        run_assessment: '📊 正在加载心理测评...',
+        save_gratitude: '🌿 正在保存感恩日记...',
+        save_memory: '💾 正在保存记忆...',
+        read_memory: '📖 正在读取记忆...',
+        show_history: '📈 正在查看历史...',
+        quick_mood: '🌱 正在记录情绪...'
+      };
+      const div = document.createElement('div');
+      div.className = 'tool-indicator';
+      div.id = 'toolIndicator';
+      div.innerHTML = `<div class="spinner"></div> ${labels[name] || '正在处理...'}`;
+      chatMessages.appendChild(div);
+      scrollDown();
+    }
+
+    function removeToolIndicator() {
+      const el = document.getElementById('toolIndicator');
+      if (el) el.remove();
+    }
+
+    function scrollDown() {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  </script>
+</body>
+</html>

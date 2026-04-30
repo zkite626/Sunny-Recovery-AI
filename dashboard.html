@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>我的记录 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.4/dist/chart.umd.min.js"></script>
+</head>
+<body>
+  <div class="sunshine">
+    <div class="orb orb--1"></div>
+    <div class="orb orb--2"></div>
+  </div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <div class="page page-enter">
+
+      <!-- Navigation -->
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">← 返回首页</a>
+      </div>
+
+      <!-- Title -->
+      <div class="text-center">
+        <h1 class="heading-display" style="font-size:var(--text-3xl);">我的情绪记录</h1>
+        <p class="text-body">回顾你的疗愈旅程</p>
+      </div>
+
+      <!-- Stats -->
+      <div class="dashboard-stat-grid" id="statsGrid">
+        <div class="glass dashboard-stat-card">
+          <div class="dashboard-stat-number" id="statTotal">0</div>
+          <div class="dashboard-stat-label">总记录</div>
+        </div>
+        <div class="glass dashboard-stat-card">
+          <div class="dashboard-stat-number" id="statAvgDrop">0</div>
+          <div class="dashboard-stat-label">平均降低</div>
+        </div>
+        <div class="glass dashboard-stat-card">
+          <div class="dashboard-stat-number" id="statBest">-</div>
+          <div class="dashboard-stat-label">最常情绪</div>
+        </div>
+      </div>
+
+      <!-- Trend chart -->
+      <div class="chart-container section" id="chartWrap" style="display:none;">
+        <canvas id="trendChart"></canvas>
+      </div>
+
+      <!-- Empty state -->
+      <div class="glass text-center" id="emptyState" style="display:none; padding:var(--sp-10);">
+        <span style="font-size:3rem; display:block; margin-bottom:var(--sp-4);">📝</span>
+        <h3 class="heading-section">还没有记录</h3>
+        <p class="text-body" style="margin:var(--sp-2) 0 var(--sp-6);">
+          完成一次情绪疗愈之旅后，记录会自动保存到这里
+        </p>
+        <a href="step1.html" class="btn btn-sun">开始第一次体验</a>
+      </div>
+
+      <!-- Record list -->
+      <div class="section" id="recordList"></div>
+
+      <!-- Clear -->
+      <div class="text-center section" id="clearBtn" style="display:none;">
+        <button class="btn btn-ghost btn-sm" onclick="clearAll()">🗑 清除所有记录</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/emotion.js"></script>
+  <script>
+    const records = getRecords();
+
+    if (records.length === 0) {
+      document.getElementById('emptyState').style.display = 'block';
+    } else {
+      renderStats();
+      renderChart();
+      renderList();
+      document.getElementById('clearBtn').style.display = 'block';
+    }
+
+    function renderStats() {
+      document.getElementById('statTotal').textContent = records.length;
+
+      const drops = records
+        .filter(r => r.intensityBefore && r.intensityAfter)
+        .map(r => r.intensityBefore - r.intensityAfter);
+      const avgDrop = drops.length > 0
+        ? (drops.reduce((a, b) => a + b, 0) / drops.length).toFixed(1)
+        : '0';
+      document.getElementById('statAvgDrop').textContent = avgDrop > 0 ? `-${avgDrop}` : avgDrop;
+
+      const counts = {};
+      records.forEach(r => {
+        if (r.emotionType) counts[r.emotionType] = (counts[r.emotionType] || 0) + 1;
+      });
+      const top = Object.entries(counts).sort((a, b) => b[1] - a[1])[0];
+      if (top) {
+        const emo = EMOTION_TYPES.find(e => e.id === top[0]);
+        document.getElementById('statBest').textContent = emo ? `${emo.emoji}${emo.label}` : top[0];
+      }
+    }
+
+    function renderChart() {
+      const withData = records.filter(r => r.intensityBefore && r.intensityAfter);
+      if (withData.length < 2) return;
+
+      document.getElementById('chartWrap').style.display = 'block';
+
+      const labels = withData.map((r, i) => {
+        const d = new Date(r.timestamp);
+        return `${d.getMonth()+1}/${d.getDate()}`;
+      });
+
+      const ctx = document.getElementById('trendChart').getContext('2d');
+      new Chart(ctx, {
+        type: 'line',
+        data: {
+          labels,
+          datasets: [
+            {
+              label: '体验前',
+              data: withData.map(r => r.intensityBefore),
+              borderColor: '#f87171',
+              backgroundColor: 'rgba(248,113,113,0.08)',
+              fill: true, tension: 0.4,
+              pointRadius: 4, pointBackgroundColor: '#f87171'
+            },
+            {
+              label: '体验后',
+              data: withData.map(r => r.intensityAfter),
+              borderColor: '#86c7a3',
+              backgroundColor: 'rgba(134,199,163,0.08)',
+              fill: true, tension: 0.4,
+              pointRadius: 4, pointBackgroundColor: '#86c7a3'
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: true,
+          aspectRatio: window.innerWidth < 480 ? 1.5 : 2,
+          scales: {
+            y: {
+              beginAtZero: true, max: 10,
+              grid: { color: 'rgba(0,0,0,0.04)' },
+              ticks: { font: { size: window.innerWidth < 480 ? 10 : 12 }, color: '#b8a99a' }
+            },
+            x: {
+              grid: { display: false },
+              ticks: { font: { size: window.innerWidth < 480 ? 10 : 12 }, color: '#7a6b5d', maxRotation: 45 }
+            }
+          },
+          plugins: {
+            legend: { labels: { padding: window.innerWidth < 480 ? 8 : 16, font: { size: window.innerWidth < 480 ? 11 : 13 }, color: '#7a6b5d' } },
+            title: {
+              display: true,
+              text: '情绪强度变化趋势',
+              font: { size: window.innerWidth < 480 ? 13 : 16, family: "'Noto Serif SC', serif", weight: '600' },
+              color: '#3d2e1f',
+              padding: { bottom: 8 }
+            }
+          }
+        }
+      });
+    }
+
+    function renderList() {
+      const container = document.getElementById('recordList');
+      [...records].reverse().forEach(r => {
+        const emo = EMOTION_TYPES.find(e => e.id === r.emotionType);
+        const d = new Date(r.timestamp);
+        const dateStr = `${d.getFullYear()}/${d.getMonth()+1}/${d.getDate()} ${d.getHours()}:${String(d.getMinutes()).padStart(2,'0')}`;
+        const drop = r.intensityBefore && r.intensityAfter ? r.intensityBefore - r.intensityAfter : 0;
+
+        const card = document.createElement('div');
+        card.className = 'glass dashboard-record';
+        card.innerHTML = `
+          <div class="dashboard-record-emoji">${emo?.emoji || '🌤️'}</div>
+          <div class="dashboard-record-info">
+            <div class="dashboard-record-title">${emo?.label || '未分类'}</div>
+            <div class="dashboard-record-meta">${dateStr} · 强度 ${r.intensityBefore || '?'} → ${r.intensityAfter || '?'}</div>
+            ${drop > 0 ? `<span class="dashboard-record-badge">↓ 降低 ${drop}</span>` : ''}
+            ${r.emotionText ? `<div class="dashboard-record-text">${r.emotionText}</div>` : ''}
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function clearAll() {
+      if (confirm('确定要清除所有情绪记录吗？此操作不可撤销。')) {
+        localStorage.removeItem('moodcoach_records');
+        location.reload();
+      }
+    }
+  </script>
+</body>
+</html>

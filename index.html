@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>晴愈AI · 直面情绪 向阳而生</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="sunshine">
+    <div class="orb orb--1"></div>
+    <div class="orb orb--2"></div>
+    <div class="orb orb--3"></div>
+    <div class="orb orb--4"></div>
+  </div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <!-- 标题区 -->
+    <section class="hero">
+      <span class="hero-badge">☀ 晴愈AI · 心理健康智能伙伴</span>
+      <h1 class="hero-title">直面情绪<br><em>向阳而生</em></h1>
+      <p class="hero-subtitle">
+        结合 AI 与心理学，陪你觉察情绪、<br>
+        拆解负面想法、找到内心力量。
+      </p>
+    </section>
+
+    <!-- 内容区 -->
+    <div class="page" style="padding-top:0;">
+      <!-- AI对话入口 -->
+      <a href="chat.html" class="glass" style="display:flex; align-items:center; gap:var(--sp-5); text-decoration:none; color:inherit; animation: fadeUp 0.8s 0.2s var(--ease-out-expo) both;">
+        <span style="font-size:2.5rem;">💬</span>
+        <div>
+          <div class="module-title">AI智能对话</div>
+          <div class="module-desc" style="text-align:left;">和晴愈聊聊，它会根据你的情绪自动选择最合适的方式帮助你</div>
+        </div>
+      </a>
+
+      <!-- 功能模块 -->
+      <div class="module-grid stagger">
+        <a href="step1.html" class="module-card glass">
+          <span class="module-icon">🌱</span>
+          <div class="module-title">情绪疗愈</div>
+          <div class="module-desc">4步引导流程</div>
+        </a>
+        <a href="assessment.html" class="module-card glass">
+          <span class="module-icon">📊</span>
+          <div class="module-title">心理测评</div>
+          <div class="module-desc">PHQ-9 · GAD-7</div>
+        </a>
+        <a href="breathe.html" class="module-card glass">
+          <span class="module-icon">🫁</span>
+          <div class="module-title">正念呼吸</div>
+          <div class="module-desc">3种呼吸引导</div>
+        </a>
+        <a href="gratitude.html" class="module-card glass">
+          <span class="module-icon">🌿</span>
+          <div class="module-title">感恩日记</div>
+          <div class="module-desc">记录美好瞬间</div>
+        </a>
+        <a href="dashboard.html" class="module-card glass">
+          <span class="module-icon">📈</span>
+          <div class="module-title">我的记录</div>
+          <div class="module-desc">情绪变化趋势</div>
+        </a>
+        <a href="step5.html" class="module-card glass">
+          <span class="module-icon">🎨</span>
+          <div class="module-title">情绪卡片</div>
+          <div class="module-desc">专属疗愈记录</div>
+        </a>
+      </div>
+
+      <!-- API Key -->
+      <div class="text-center">
+        <button class="btn btn-ghost btn-sm" onclick="openApiModal()" id="apiKeyBtn">🔑 设置 API Key</button>
+      </div>
+    </div>
+
+    <div class="disclaimer">
+      本工具基于认知行为疗法（CBT）原理设计，仅供情绪觉察与自我探索参考，<br>
+      不能替代专业心理咨询。如遇严重心理困扰，请联系学校心理咨询中心。
+    </div>
+  </div>
+
+  <!-- API Key Modal -->
+  <div class="modal-overlay" id="apiModal">
+    <div class="modal-box" style="position:relative;">
+      <button class="modal-close" onclick="closeApiModal()">×</button>
+      <h3 class="heading-section" style="margin-bottom:var(--sp-3); font-size:var(--text-xl);">🔑 设置 API Key</h3>
+      <p class="text-body" style="margin-bottom:var(--sp-5);">需要 DeepSeek API 来驱动 AI 功能。</p>
+      <input type="password" class="input-line" id="apiKeyInput" placeholder="sk-..." style="margin-bottom:var(--sp-4);">
+      <button class="btn btn-sun" style="width:100%;" onclick="saveApiKey()">保存</button>
+      <p class="text-caption" style="margin-top:var(--sp-3); text-align:center;">Key 仅保存在本地浏览器，不会上传</p>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    function updateApiBtn() {
+      const btn = document.getElementById('apiKeyBtn');
+      if (getApiKey()) {
+        btn.textContent = '🔑 API Key 已设置';
+        btn.style.opacity = '0.5';
+      }
+    }
+    updateApiBtn();
+
+    function openApiModal() {
+      document.getElementById('apiModal').classList.add('open');
+      const input = document.getElementById('apiKeyInput');
+      if (getApiKey()) input.value = getApiKey();
+      input.focus();
+    }
+    function closeApiModal() {
+      document.getElementById('apiModal').classList.remove('open');
+    }
+    document.getElementById('apiModal').addEventListener('click', e => {
+      if (e.target === e.currentTarget) closeApiModal();
+    });
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeApiModal(); });
+
+    function saveApiKey() {
+      const key = document.getElementById('apiKeyInput').value.trim();
+      if (!key) return;
+      setApiKey(key);
+      closeApiModal();
+      updateApiBtn();
+    }
+  </script>
+</body>
+</html>

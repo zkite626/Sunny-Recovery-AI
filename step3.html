@@ -1,0 +1,264 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>AI对话 · 晴愈AI教练</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="sunshine">
+    <div class="orb orb--1"></div>
+    <div class="orb orb--2"></div>
+  </div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <!-- Use .page--chat to enable flex-grow layout for sticky input -->
+    <div class="page page-enter page--chat">
+
+      <!-- Progress bar -->
+      <div class="progress-bar">
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot active"></div>
+        <div class="progress-line"></div>
+        <div class="progress-dot"></div>
+        <div class="progress-line"></div>
+        <div class="progress-dot"></div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <a href="step2.html" class="btn btn-ghost btn-sm">← 上一步</a>
+      </div>
+
+      <!-- Chat header -->
+      <div class="chat-header">
+        <div class="chat-avatar">☀️</div>
+        <div>
+          <div class="chat-name">晴愈教练</div>
+          <div class="chat-status">● 在线陪伴中</div>
+        </div>
+      </div>
+
+      <!-- Chat messages: flex-grow, scrollable -->
+      <div class="chat-messages" id="chatMessages"></div>
+
+      <!-- Input bar: sticky at bottom -->
+      <div class="chat-input-bar" id="chatInputBar">
+        <input type="text" class="input-line" id="chatInput"
+          placeholder="写下你的想法..." autocomplete="off">
+        <button class="btn btn-sun btn-sm" id="sendBtn" onclick="sendMessage()">发送</button>
+      </div>
+
+      <!-- Skip link (shown after final round) -->
+      <div class="nav-bar" id="skipLink" style="display:none; justify-content:center;">
+        <span style="color:var(--text-ghost); font-size:var(--text-sm);">
+          对话已完成 ·
+        </span>
+        <a href="step4.html" style="color:var(--sun-core); font-size:var(--text-sm); font-weight:600; text-decoration:none;">
+          获取文学安慰 →
+        </a>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/emotion.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/prompt.js"></script>
+  <script>
+    const session = getCurrent();
+    const messages = [];
+    let roundCount = 0;
+    const MAX_ROUNDS = 3;
+    let isProcessing = false;
+
+    const chatMessages = document.getElementById('chatMessages');
+    const chatInput = document.getElementById('chatInput');
+    const sendBtn = document.getElementById('sendBtn');
+
+    chatInput.addEventListener('keydown', e => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        sendMessage();
+      }
+    });
+
+    // Auto-start
+    window.addEventListener('DOMContentLoaded', async () => {
+      const emotion = EMOTION_TYPES.find(e => e.id === session.emotionType);
+      const zones = (session.bodyZones || []).map(id =>
+        BODY_ZONES.find(z => z.id === id)?.label || ''
+      ).filter(Boolean);
+
+      const contextMsg = `用户正在使用情绪引导工具。以下是用户的情绪记录：
+- 情绪类型：${emotion?.label || '未选择'} ${emotion?.emoji || ''}
+- 情绪强度：${session.intensity || 5}/10
+- 身体紧张部位：${zones.length > 0 ? zones.join('、') : '未选择'}
+- 用户描述：${session.emotionText || '（无详细描述）'}
+
+请开始你的第一轮引导（共情 + 识别思维陷阱 + 提出一个引导性问题）。`;
+
+      messages.push({ role: 'user', content: contextMsg });
+      addLoading();
+
+      try {
+        const reply = await callAI(CBT_SYSTEM_PROMPT, messages);
+        removeLoading();
+        addBubble('ai', reply);
+        messages.push({ role: 'assistant', content: reply });
+        roundCount = 1;
+      } catch (err) {
+        removeLoading();
+        addBubble('ai', `遇到了问题：${err.message}。请检查 API Key 是否正确。`);
+      }
+    });
+
+    async function sendMessage() {
+      if (isProcessing) return;
+      const text = chatInput.value.trim();
+      if (!text) return;
+
+      // Crisis detection
+      if (detectCrisis(text)) {
+        addBubble('user', text);
+        chatInput.value = '';
+        setTimeout(() => addBubble('ai', getCrisisResponse()), 500);
+        return;
+      }
+
+      addBubble('user', text);
+      messages.push({ role: 'user', content: text });
+      chatInput.value = '';
+      roundCount++;
+
+      // Final round
+      if (roundCount >= MAX_ROUNDS) {
+        addLoading();
+        isProcessing = true;
+        try {
+          const reply = await callAI(CBT_SYSTEM_PROMPT, messages);
+          removeLoading();
+          addBubble('ai', reply);
+          messages.push({ role: 'assistant', content: reply });
+          saveCurrent({ aiReply: reply, chatHistory: messages });
+          showCompletion();
+        } catch (err) {
+          removeLoading();
+          addBubble('ai', `出错了：${err.message}`);
+        }
+        isProcessing = false;
+        return;
+      }
+
+      // Normal round: stream
+      addLoading();
+      isProcessing = true;
+      sendBtn.disabled = true;
+
+      try {
+        const reply = await callAIStream(CBT_SYSTEM_PROMPT, messages, (token, full) => {
+          updateStreamingBubble(full);
+        });
+        removeLoading();
+        finalizeStreamingBubble();
+        messages.push({ role: 'assistant', content: reply });
+      } catch (err) {
+        removeLoading();
+        addBubble('ai', `出错了：${err.message}`);
+      }
+
+      isProcessing = false;
+      sendBtn.disabled = false;
+    }
+
+    // ── Bubble helpers ──
+
+    function addBubble(role, text) {
+      const div = document.createElement('div');
+      div.className = `chat-bubble chat-bubble--${role}`;
+      div.textContent = text;
+      chatMessages.appendChild(div);
+      scrollToBottom();
+    }
+
+    let streamingBubble = null;
+    let streamStarted = false;
+
+    function ensureStreamingBubble() {
+      if (!streamingBubble) {
+        const div = document.createElement('div');
+        div.className = 'chat-bubble chat-bubble--ai';
+        div.innerHTML = '<span class="stream-text"></span><span class="typewriter-cursor"></span>';
+        chatMessages.appendChild(div);
+        streamingBubble = div;
+      }
+      return streamingBubble;
+    }
+
+    function updateStreamingBubble(text) {
+      if (!streamStarted) {
+        streamStarted = true;
+        const loader = document.getElementById('loadingBubble');
+        if (loader) loader.style.display = 'none';
+        ensureStreamingBubble();
+      }
+      const span = streamingBubble.querySelector('.stream-text');
+      if (span) span.textContent = text;
+      scrollToBottom();
+    }
+
+    function finalizeStreamingBubble() {
+      if (streamingBubble) {
+        const cursor = streamingBubble.querySelector('.typewriter-cursor');
+        if (cursor) cursor.remove();
+      }
+      streamingBubble = null;
+      streamStarted = false;
+    }
+
+    function addLoading() {
+      streamStarted = false;
+      const div = document.createElement('div');
+      div.className = 'chat-bubble chat-bubble--ai';
+      div.id = 'loadingBubble';
+      div.innerHTML = '<div class="loading-dots"><span></span><span></span><span></span></div>';
+      chatMessages.appendChild(div);
+      scrollToBottom();
+    }
+
+    function removeLoading() {
+      const el = document.getElementById('loadingBubble');
+      if (el) el.remove();
+    }
+
+    function showCompletion() {
+      const div = document.createElement('div');
+      div.className = 'text-center';
+      div.style.padding = 'var(--sp-6) 0';
+      div.style.animation = 'fadeUp 0.6s ease both';
+      div.innerHTML = `
+        <p class="text-body" style="margin-bottom:var(--sp-4);">
+          对话已完成，接下来获取一份专属文学安慰 ✨
+        </p>
+        <button class="btn btn-peach btn-lg" onclick="location.href='step4.html'">
+          获取文学安慰 →
+        </button>
+      `;
+      chatMessages.appendChild(div);
+      document.getElementById('skipLink').style.display = 'flex';
+      document.getElementById('chatInputBar').style.display = 'none';
+      scrollToBottom();
+    }
+
+    function scrollToBottom() {
+      chatMessages.scrollTop = chatMessages.scrollHeight;
+    }
+  </script>
+</body>
+</html>

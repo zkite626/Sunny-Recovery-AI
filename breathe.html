@@ -1,0 +1,167 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>正念呼吸 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="sunshine"><div class="orb orb--1"></div><div class="orb orb--2"></div></div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <div class="page page-enter">
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <a href="chat.html" class="btn btn-ghost btn-sm">💬 AI对话</a>
+      </div>
+
+      <div class="text-center">
+        <h2 class="heading-section">正念呼吸</h2>
+        <p class="text-body" id="patternDesc">4-7-8 呼吸法：吸气4秒 · 屏息7秒 · 呼气8秒</p>
+      </div>
+
+      <!-- 呼吸模式选择 -->
+      <div class="glass" id="modeSelect">
+        <p class="text-caption" style="margin-bottom:var(--sp-4);">选择呼吸模式</p>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-3);">
+          <button class="assess-option selected" onclick="selectPattern('478', this)">
+            <strong>4-7-8 呼吸法</strong> — 安神助眠，缓解焦虑
+          </button>
+          <button class="assess-option" onclick="selectPattern('box', this)">
+            <strong>方形呼吸</strong> — 专注平静，提升注意力
+          </button>
+          <button class="assess-option" onclick="selectPattern('coherence', this)">
+            <strong>共振呼吸</strong> — 平衡自律神经，身心和谐
+          </button>
+        </div>
+      </div>
+
+      <!-- 呼吸动画 -->
+      <div id="breatheArea" style="display:none;">
+        <div class="breathe-phase" id="phaseLabel">准备开始</div>
+        <div class="breathe-circle" id="breatheCircle">
+          <span id="breatheText">开始</span>
+        </div>
+        <div class="breathe-counter" id="counterNum"></div>
+        <div class="breathe-cycles" id="cycleInfo"></div>
+
+        <div class="text-center" style="margin-top:var(--sp-6);">
+          <button class="btn btn-ghost" id="stopBtn" onclick="stopBreathing()">停止</button>
+        </div>
+      </div>
+
+      <!-- 开始按钮 -->
+      <div class="text-center" id="startBtnWrap">
+        <button class="btn btn-sun btn-lg" onclick="startBreathing()">开始呼吸练习</button>
+        <p class="text-caption" style="margin-top:var(--sp-3);">建议练习 4-6 个循环</p>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const patterns = {
+      '478': { inhale: 4, hold: 7, exhale: 8, name: '4-7-8 呼吸法', desc: '吸气4秒 · 屏息7秒 · 呼气8秒' },
+      'box': { inhale: 4, hold: 4, exhale: 4, holdAfter: 4, name: '方形呼吸', desc: '吸气4秒 · 屏息4秒 · 呼气4秒 · 屏息4秒' },
+      'coherence': { inhale: 5, hold: 0, exhale: 5, name: '共振呼吸', desc: '吸气5秒 · 呼气5秒' }
+    };
+
+    let currentPattern = '478';
+    let totalCycles = 4;
+    let running = false;
+    let timer = null;
+
+    // URL 参数
+    const params = new URLSearchParams(location.search);
+    if (params.get('pattern') && patterns[params.get('pattern')]) {
+      currentPattern = params.get('pattern');
+    }
+    if (params.get('cycles')) {
+      totalCycles = parseInt(params.get('cycles')) || 4;
+    }
+
+    function selectPattern(key, btn) {
+      currentPattern = key;
+      document.querySelectorAll('#modeSelect .assess-option').forEach(b => b.classList.remove('selected'));
+      btn.classList.add('selected');
+      document.getElementById('patternDesc').textContent = patterns[key].desc;
+    }
+
+    async function startBreathing() {
+      document.getElementById('modeSelect').style.display = 'none';
+      document.getElementById('startBtnWrap').style.display = 'none';
+      document.getElementById('breatheArea').style.display = 'block';
+      running = true;
+
+      const p = patterns[currentPattern];
+      for (let cycle = 1; cycle <= totalCycles && running; cycle++) {
+        document.getElementById('cycleInfo').textContent = `第 ${cycle} / ${totalCycles} 轮`;
+
+        // 吸气
+        await breathePhase('inhale', '吸气...', p.inhale);
+        if (!running) break;
+
+        // 屏息
+        if (p.hold > 0) {
+          await breathePhase('hold', '屏住...', p.hold);
+          if (!running) break;
+        }
+
+        // 呼气
+        await breathePhase('exhale', '呼气...', p.exhale);
+        if (!running) break;
+
+        // 方形呼吸的第二次屏息
+        if (p.holdAfter) {
+          await breathePhase('hold', '屏住...', p.holdAfter);
+          if (!running) break;
+        }
+      }
+
+      if (running) {
+        document.getElementById('phaseLabel').textContent = '练习完成 🌿';
+        document.getElementById('breatheText').textContent = '完成';
+        document.getElementById('breatheCircle').className = 'breathe-circle';
+        document.getElementById('counterNum').textContent = '';
+        document.getElementById('stopBtn').textContent = '返回';
+      }
+    }
+
+    function breathePhase(phase, label, seconds) {
+      return new Promise(resolve => {
+        const circle = document.getElementById('breatheCircle');
+        const phaseLabel = document.getElementById('phaseLabel');
+        const counterNum = document.getElementById('counterNum');
+        const breatheText = document.getElementById('breatheText');
+
+        circle.className = `breathe-circle ${phase}`;
+        phaseLabel.textContent = label;
+        breatheText.textContent = label.replace('...', '');
+
+        let remaining = seconds;
+        counterNum.textContent = remaining;
+
+        timer = setInterval(() => {
+          remaining--;
+          if (remaining <= 0) {
+            clearInterval(timer);
+            resolve();
+          } else {
+            counterNum.textContent = remaining;
+          }
+        }, 1000);
+      });
+    }
+
+    function stopBreathing() {
+      running = false;
+      if (timer) clearInterval(timer);
+      document.getElementById('modeSelect').style.display = 'block';
+      document.getElementById('startBtnWrap').style.display = 'block';
+      document.getElementById('breatheArea').style.display = 'none';
+      document.getElementById('breatheCircle').className = 'breathe-circle';
+    }
+  </script>
+</body>
+</html>

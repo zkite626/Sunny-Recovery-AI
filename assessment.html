@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>心理测评 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <div class="sunshine"><div class="orb orb--1"></div><div class="orb orb--2"></div></div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <div class="page page-enter">
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <a href="chat.html" class="btn btn-ghost btn-sm">💬 AI对话</a>
+      </div>
+
+      <!-- 问卷阶段 -->
+      <div id="quizPhase">
+        <div class="text-center">
+          <h2 class="heading-section" id="assessTitle">心理测评</h2>
+          <p class="text-body" id="assessDesc">过去两周内，以下问题困扰你的频率是？</p>
+        </div>
+
+        <div class="assess-progress-bar">
+          <div class="assess-progress-fill" id="progressFill" style="width:0%"></div>
+        </div>
+
+        <div class="glass" id="questionCard">
+          <div class="assess-question" id="questionText"></div>
+          <div class="assess-options" id="optionsList"></div>
+        </div>
+
+        <div class="text-center">
+          <span id="questionCounter" style="font-size:var(--text-sm); color:var(--text-ghost);"></span>
+        </div>
+      </div>
+
+      <!-- 结果阶段 -->
+      <div id="resultPhase" style="display:none;">
+        <div class="text-center">
+          <h2 class="heading-section">测评结果</h2>
+        </div>
+
+        <div class="glass text-center">
+          <div class="assess-score-ring">
+            <div class="assess-score-num" id="scoreNum">0</div>
+            <div class="assess-score-label" id="scoreMax">/ 27</div>
+          </div>
+          <div class="assess-level" id="levelBadge"></div>
+          <p class="text-body" id="levelDesc" style="margin-bottom:var(--sp-6);"></p>
+        </div>
+
+        <div class="glass" id="aiAnalysis" style="display:none;">
+          <p class="text-caption" style="margin-bottom:var(--sp-3);">AI 分析</p>
+          <div id="analysisText" style="font-size:var(--text-base); color:var(--text-secondary); line-height:1.8;"></div>
+        </div>
+
+        <div class="text-center" style="display:flex; gap:var(--sp-4); justify-content:center; flex-wrap:wrap;">
+          <a href="chat.html" class="btn btn-sun">和AI聊聊 →</a>
+          <button class="btn btn-ghost" onclick="location.reload()">重新测评</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/api.js"></script>
+  <script src="js/prompt.js"></script>
+  <script>
+    const params = new URLSearchParams(location.search);
+    const assessType = params.get('type') || 'phq9';
+
+    const isPHQ9 = assessType === 'phq9';
+    const questions = isPHQ9 ? PHQ9_QUESTIONS : GAD7_QUESTIONS;
+    const options = isPHQ9 ? PHQ9_OPTIONS : GAD7_OPTIONS;
+    const title = isPHQ9 ? 'PHQ-9 抑郁筛查' : 'GAD-7 焦虑筛查';
+    const maxScore = isPHQ9 ? 27 : 21;
+
+    let currentQ = 0;
+    const answers = [];
+
+    document.getElementById('assessTitle').textContent = title;
+    document.getElementById('scoreMax').textContent = `/ ${maxScore}`;
+
+    function showQuestion() {
+      const q = questions[currentQ];
+      document.getElementById('questionText').textContent = `${q.id}. ${q.text}`;
+      document.getElementById('questionCounter').textContent = `${currentQ + 1} / ${questions.length}`;
+      document.getElementById('progressFill').style.width = `${(currentQ / questions.length) * 100}%`;
+
+      const list = document.getElementById('optionsList');
+      list.innerHTML = '';
+      options.forEach(opt => {
+        const btn = document.createElement('button');
+        btn.className = 'assess-option';
+        btn.textContent = opt.label;
+        btn.onclick = () => selectOption(opt.value);
+        list.appendChild(btn);
+      });
+    }
+
+    function selectOption(value) {
+      answers.push(value);
+      currentQ++;
+      if (currentQ < questions.length) {
+        showQuestion();
+      } else {
+        showResult();
+      }
+    }
+
+    function showResult() {
+      document.getElementById('progressFill').style.width = '100%';
+      const total = answers.reduce((a, b) => a + b, 0);
+
+      document.getElementById('quizPhase').style.display = 'none';
+      document.getElementById('resultPhase').style.display = 'block';
+      document.getElementById('scoreNum').textContent = total;
+
+      // 等级判定
+      const levels = isPHQ9
+        ? [{max:4,label:'无/极轻微',cls:'mild'},{max:9,label:'轻度',cls:'mild'},{max:14,label:'中度',cls:'moderate'},{max:19,label:'中重度',cls:'moderate'},{max:27,label:'重度',cls:'severe'}]
+        : [{max:4,label:'无/极轻微',cls:'mild'},{max:9,label:'轻度',cls:'mild'},{max:14,label:'中度',cls:'moderate'},{max:21,label:'重度',cls:'severe'}];
+
+      const level = levels.find(l => total <= l.max) || levels[levels.length - 1];
+      const badge = document.getElementById('levelBadge');
+      badge.textContent = level.label;
+      badge.className = `assess-level assess-level--${level.cls}`;
+
+      const descs = isPHQ9
+        ? {mild:'你的抑郁情绪在可控范围内。保持规律作息和适度运动，关注自己的情绪变化。',moderate:'你可能正在经历一定程度的抑郁情绪。建议和信任的人聊聊，或尝试一些放松练习。',severe:'你的得分提示可能存在较明显的抑郁状态。强烈建议联系学校心理咨询中心或专业机构获取帮助。'}
+        : {mild:'你的焦虑水平较低。继续保持当下的状态就好。',moderate:'你可能有一些焦虑倾向。试试正念呼吸、适度运动来缓解。',severe:'你的得分提示焦虑程度较高。建议联系学校心理咨询中心获取专业支持。'};
+      document.getElementById('levelDesc').textContent = descs[level.cls];
+
+      // 保存结果
+      saveAssessmentResult({
+        type: assessType,
+        score: total,
+        maxScore: maxScore,
+        level: level.label,
+        answers: answers
+      });
+
+      // AI 分析
+      if (getApiKey()) {
+        generateAnalysis(total, level.label);
+      }
+    }
+
+    async function generateAnalysis(score, level) {
+      document.getElementById('aiAnalysis').style.display = 'block';
+      try {
+        const analysis = await callAI(ASSESSMENT_ANALYSIS_PROMPT, [{
+          role: 'user',
+          content: `用户完成了${title}测评，总分${score}/${maxScore}，等级：${level}。请给出分析报告。`
+        }]);
+        document.getElementById('analysisText').textContent = analysis;
+      } catch (err) {
+        document.getElementById('analysisText').textContent = 'AI分析暂时不可用：' + err.message;
+      }
+    }
+
+    showQuestion();
+  </script>
+</body>
+</html>

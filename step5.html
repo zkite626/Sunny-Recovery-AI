@@ -1,0 +1,280 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>情绪卡片 · 晴愈AI教练</title>
+  <link rel="stylesheet" href="css/style.css">
+  <style>
+    .card-canvas-wrap {
+      width: 100%;
+      max-width: 400px;
+      border-radius: var(--r-lg);
+      overflow: hidden;
+      box-shadow: 0 12px 50px rgba(0,0,0,0.1), 0 0 30px rgba(246,166,35,0.08);
+      animation: cardReveal 1s var(--ease-out-expo) both;
+      align-self: center;
+    }
+
+    @keyframes cardReveal {
+      0%   { opacity: 0; transform: scale(0.9) rotate(-2deg); }
+      100% { opacity: 1; transform: scale(1) rotate(0deg); }
+    }
+
+    .card-canvas-wrap canvas {
+      width: 100%;
+      height: auto;
+      display: block;
+    }
+
+    .card-actions {
+      display: flex;
+      gap: var(--sp-3);
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+
+    .journey-step {
+      display: flex;
+      align-items: flex-start;
+      gap: var(--sp-4);
+      padding: var(--sp-4) 0;
+      position: relative;
+    }
+
+    .journey-step::before {
+      content: '';
+      position: absolute;
+      left: 15px;
+      top: 36px;
+      bottom: -4px;
+      width: 2px;
+      background: linear-gradient(180deg, var(--sun-light), transparent);
+    }
+
+    .journey-step:last-child::before { display: none; }
+
+    .journey-dot {
+      width: 32px;
+      height: 32px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.9rem;
+      flex-shrink: 0;
+      background: rgba(246,166,35,0.1);
+    }
+
+    .journey-info h4 {
+      font-size: var(--text-sm);
+      font-weight: 600;
+      color: var(--text-primary);
+      margin-bottom: 2px;
+    }
+
+    .journey-info p {
+      font-size: var(--text-xs);
+      color: var(--text-ghost);
+    }
+  </style>
+</head>
+<body>
+  <div class="sunshine">
+    <div class="orb orb--1"></div>
+    <div class="orb orb--2"></div>
+    <div class="orb orb--3"></div>
+  </div>
+  <div class="grain"></div>
+
+  <div class="app">
+    <div class="page page-enter">
+      <!-- Progress: all done -->
+      <div class="progress-bar">
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot done"></div>
+        <div class="progress-line done"></div>
+        <div class="progress-dot active"></div>
+      </div>
+
+      <!-- Navigation -->
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <a href="step4.html" class="btn btn-ghost btn-sm">← 上一步</a>
+      </div>
+
+      <!-- Title -->
+      <div class="text-center">
+        <h2 class="heading-section">你的专属情绪卡</h2>
+        <p class="text-body">这段旅程的完整记录</p>
+      </div>
+
+      <!-- Emotion Card Canvas -->
+      <div class="card-canvas-wrap">
+        <canvas id="emotionCard"></canvas>
+      </div>
+
+      <!-- Action buttons -->
+      <div class="card-actions">
+        <button class="btn btn-sun" onclick="downloadCard('emotionCard', '晴愈情绪卡.png')">
+          💾 保存卡片
+        </button>
+        <button class="btn btn-peach" onclick="saveAndFinish()">
+          📊 保存记录
+        </button>
+      </div>
+
+      <!-- Journey Map -->
+      <div class="glass">
+        <h3 class="heading-section" style="font-size:var(--text-lg); margin-bottom:var(--sp-4);">
+          你的疗愈旅程
+        </h3>
+
+        <div class="journey-step">
+          <div class="journey-dot">🌱</div>
+          <div class="journey-info">
+            <h4>情绪觉察</h4>
+            <p id="journeyEmotion">识别了焦虑情绪，强度 7/10</p>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="journey-dot">🫁</div>
+          <div class="journey-info">
+            <h4>身体扫描</h4>
+            <p id="journeyBody">感受了肩背、胸口的紧张</p>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="journey-dot">💬</div>
+          <div class="journey-info">
+            <h4>AI对话引导</h4>
+            <p id="journeyChat">识别了灾难化思维，完成认知重构</p>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="journey-dot">📝</div>
+          <div class="journey-info">
+            <h4>文学安慰</h4>
+            <p>获得了一段专属治愈文字</p>
+          </div>
+        </div>
+
+        <div class="journey-step">
+          <div class="journey-dot">✨</div>
+          <div class="journey-info">
+            <h4>情绪转化</h4>
+            <p id="journeyResult">情绪从 7/10 降到 4/10</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- Final emotion check -->
+      <div class="glass text-center">
+        <p class="text-caption" style="margin-bottom:var(--sp-4);">现在再感受一下，你的情绪强度是？</p>
+        <div class="slider-value" id="finalValue" style="font-size:var(--text-4xl);">4</div>
+        <div class="slider-label" id="finalLabel">轻度不安</div>
+        <div class="slider-wrap">
+          <div class="slider-track">
+            <input type="range" min="1" max="10" value="4" id="finalSlider">
+          </div>
+        </div>
+      </div>
+
+      <!-- Bottom navigation -->
+      <div class="text-center">
+        <div style="display:flex; gap:var(--sp-4); justify-content:center; flex-wrap:wrap;">
+          <a href="index.html" class="btn btn-ghost">🏠 返回首页</a>
+          <a href="step1.html" class="btn btn-sun">🔄 再来一次</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/emotion.js"></script>
+  <script src="js/card.js"></script>
+  <script>
+    const session = getCurrent();
+    const summary = generateSummary(session);
+
+    const aiReply = session.aiReply || '';
+    let oldThought = '来不及了，肯定考不好';
+    let newThought = '现在开始准备，每天进步一点';
+    let microAction = '翻开课本，只看第一页';
+
+    const restructureMatch = aiReply.match(/["「](.*?)["」]\s*[→➣➡→~～]+\s*["「](.*?)["」]/);
+    if (restructureMatch) {
+      oldThought = restructureMatch[1];
+      newThought = restructureMatch[2];
+    }
+
+    generateEmotionCard('emotionCard', {
+      ...summary, oldThought, newThought, microAction
+    });
+
+    // Update journey
+    const emotion = EMOTION_TYPES.find(e => e.id === session.emotionType);
+    document.getElementById('journeyEmotion').textContent =
+      `识别了${emotion?.label || '负面'}情绪，强度 ${session.intensity || 5}/10`;
+
+    const zones = (session.bodyZones || []).map(id =>
+      BODY_ZONES.find(z => z.id === id)?.label || ''
+    ).filter(Boolean);
+    document.getElementById('journeyBody').textContent =
+      zones.length > 0 ? `感受了${zones.join('、')}的紧张` : '跳过了身体扫描';
+
+    const trap = extractThinkingTrap(aiReply);
+    document.getElementById('journeyChat').textContent =
+      `识别了${trap.label}，完成认知重构`;
+
+    document.getElementById('journeyResult').textContent =
+      `情绪从 ${summary.intensityBefore}/10 降到 ${summary.intensityAfter}/10`;
+
+    // Final slider
+    const finalSlider = document.getElementById('finalSlider');
+    const finalValue = document.getElementById('finalValue');
+    const finalLabel = document.getElementById('finalLabel');
+
+    finalSlider.addEventListener('input', () => {
+      const val = parseInt(finalSlider.value);
+      finalValue.textContent = val;
+      finalLabel.textContent = getEmotionLabel(val);
+      finalValue.style.color = getEmotionColor(val);
+    });
+
+    // Save to records
+    function saveAndFinish() {
+      saveRecord({
+        emotionType: session.emotionType,
+        intensityBefore: session.intensity,
+        intensityAfter: parseInt(finalSlider.value),
+        emotionText: session.emotionText,
+        bodyZones: session.bodyZones,
+        thinkingTrap: trap.id,
+        literaryText: session.literaryText || ''
+      });
+      showToast('记录已保存 ✓');
+    }
+
+    function showToast(msg) {
+      let toast = document.querySelector('.toast');
+      if (!toast) {
+        toast = document.createElement('div');
+        toast.className = 'toast';
+        document.body.appendChild(toast);
+      }
+      toast.textContent = msg;
+      toast.classList.add('show');
+      setTimeout(() => toast.classList.remove('show'), 2500);
+    }
+  </script>
+</body>
+</html>
