@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  .deco-gold { background: #f6a623; width: 180pt; height: 180pt; bottom: -50pt; left: -30pt; }
+  .content-box { position: absolute; top: 50pt; left: 70pt; right: 70pt; }
+  .cbt-demo { display: flex; gap: 20pt; margin-top: 24pt; }
+  .cbt-round { flex: 1; padding: 18pt; border-radius: 12pt; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.04); }
+  .round-badge { display: inline-block; padding: 3pt 10pt; border-radius: 99pt; font-size: 9pt; font-weight: 600; margin-bottom: 10pt; }
+  .round-title { font-family: 'Noto Serif SC', serif; font-size: 13pt; font-weight: 600; color: #3d2e1f; margin-bottom: 6pt; }
+  .round-desc { font-size: 10pt; color: #7a6b5d; line-height: 1.7; }
+  .restructure-box { margin-top: 24pt; padding: 20pt; border-radius: 12pt; background: rgba(255,255,255,0.5); border: 1px solid rgba(0,0,0,0.04); display: flex; align-items: center; gap: 20pt; }
+  .thought-old { flex: 1; padding: 14pt; border-radius: 10pt; background: rgba(248,113,113,0.08); border: 1px solid rgba(248,113,113,0.15); }
+  .thought-new { flex: 1; padding: 14pt; border-radius: 10pt; background: rgba(134,199,163,0.1); border: 1px solid rgba(134,199,163,0.2); }
+  .thought-label { font-size: 9pt; font-weight: 600; margin-bottom: 4pt; }
+  .thought-text { font-size: 12pt; color: #3d2e1f; font-weight: 500; }
+  .arrow-center { font-size: 24pt; color: #f6a623; }
+  .page-num { position: absolute; bottom: 20pt; right: 30pt; font-size: 9pt; color: #b8a99a; }
+</style>
+</head>
+<body>
+  <div class="deco-circle deco-gold"></div>
+
+  <div class="content-box">
+    <div style="margin-bottom:6pt;"><span class="badge">核心功能二</span></div>
+    <h2>5 步 CBT 情绪疗愈流程</h2>
+    <p style="margin-top:4pt; font-size:12pt;">基于认知行为疗法的结构化引导，每一步都有科学依据</p>
+
+    <div class="cbt-demo">
+      <div class="cbt-round">
+        <div class="round-badge" style="background:rgba(246,166,35,0.12); color:#f6a623;">步骤 1-2</div>
+        <div class="round-title">情绪觉察 + 身体扫描</div>
+        <p class="round-desc">滑动选择情绪强度，选择情绪标签，写下感受。交互式人体图引导觉察身体紧张部位。</p>
+      </div>
+      <div class="cbt-round">
+        <div class="round-badge" style="background:rgba(167,139,250,0.12); color:#a78bfa;">步骤 3</div>
+        <div class="round-title">AI CBT 对话</div>
+        <p class="round-desc">3轮引导：共情识别思维陷阱 → 分离想法与事实 → 认知重构 + 微行动建议。</p>
+      </div>
+      <div class="cbt-round">
+        <div class="round-badge" style="background:rgba(134,199,163,0.12); color:#86c7a3;">步骤 4-5</div>
+        <div class="round-title">文学安慰 + 情绪卡片</div>
+        <p class="round-desc">AI 创作专属治愈文字，生成精美疗愈卡片，记录完整旅程。</p>
+      </div>
+    </div>
+
+    <div class="restructure-box">
+      <div class="thought-old">
+        <div class="thought-label" style="color:#f87171;">旧想法</div>
+        <div class="thought-text">「我必须完美，做不好就完蛋」</div>
+      </div>
+      <div class="arrow-center">→</div>
+      <div class="thought-new">
+        <div class="thought-label" style="color:#86c7a3;">新想法</div>
+        <div class="thought-text">「先完成，再完善，每天进步一点」</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-num">05</div>
+</body>
+</html>

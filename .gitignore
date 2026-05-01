@@ -1,1 +1,4 @@
-docs/*
+docs/*.pdf
+docs/*.docx
+nextjs-version/node_modules/
+nextjs-version/.next/

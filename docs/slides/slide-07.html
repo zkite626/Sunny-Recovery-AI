@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  .deco-purple { background: #a78bfa; width: 280pt; height: 280pt; bottom: -90pt; right: -70pt; }
+  .content-box { position: absolute; top: 50pt; left: 70pt; right: 70pt; }
+  .theory-grid { display: flex; gap: 16pt; margin-top: 24pt; }
+  .theory-card { flex: 1; padding: 18pt; border-radius: 12pt; background: rgba(255,255,255,0.6); border: 1px solid rgba(0,0,0,0.04); }
+  .theory-num { width: 32pt; height: 32pt; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 14pt; color: #fff; margin-bottom: 10pt; }
+  .theory-name { font-family: 'Noto Serif SC', serif; font-size: 14pt; font-weight: 600; color: #3d2e1f; margin-bottom: 6pt; }
+  .theory-desc { font-size: 10pt; color: #7a6b5d; line-height: 1.7; }
+  .theory-app { font-size: 10pt; color: #f6a623; margin-top: 8pt; font-weight: 500; }
+  .page-num { position: absolute; bottom: 20pt; right: 30pt; font-size: 9pt; color: #b8a99a; }
+</style>
+</head>
+<body>
+  <div class="deco-circle deco-purple"></div>
+
+  <div class="content-box">
+    <div style="margin-bottom:6pt;"><span class="badge">理论依据</span></div>
+    <h2>循证心理学基础</h2>
+    <p style="margin-top:4pt; font-size:12pt;">每一项功能都有扎实的理论支撑</p>
+
+    <div class="theory-grid">
+      <div class="theory-card">
+        <div class="theory-num" style="background:#f6a623;">1</div>
+        <div class="theory-name">情绪ABC理论</div>
+        <p class="theory-desc">事件A不直接导致情绪C，不合理信念B才是内耗根源</p>
+        <p class="theory-app">→ 识别不合理信念</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-num" style="background:#a78bfa;">2</div>
+        <div class="theory-name">认知行为疗法</div>
+        <p class="theory-desc">想法—情绪—行为形成循环，通过认知重构打破负向循环</p>
+        <p class="theory-app">→ 3轮CBT对话引导</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-num" style="background:#86c7a3;">3</div>
+        <div class="theory-name">正念减压</div>
+        <p class="theory-desc">提升当下觉察，停止思维反刍，调节自主神经系统</p>
+        <p class="theory-app">→ 3种呼吸引导模式</p>
+      </div>
+      <div class="theory-card">
+        <div class="theory-num" style="background:#fda085;">4</div>
+        <div class="theory-name">积极心理学</div>
+        <p class="theory-desc">感恩练习帮助大脑关注积极面，提升主观幸福感</p>
+        <p class="theory-app">→ 感恩日记功能</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-num">07</div>
+</body>
+</html>

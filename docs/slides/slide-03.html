@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  .deco-green { background: #86c7a3; width: 250pt; height: 250pt; bottom: -80pt; right: -60pt; }
+  .content-box { position: absolute; top: 50pt; left: 70pt; right: 70pt; }
+  .flow-row { display: flex; align-items: center; gap: 8pt; margin-top: 30pt; }
+  .flow-step { flex: 1; text-align: center; }
+  .flow-num { width: 44pt; height: 44pt; border-radius: 50%; margin: 0 auto 8pt; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 18pt; color: #fff; }
+  .flow-label { font-family: 'Noto Serif SC', serif; font-size: 13pt; font-weight: 600; color: #3d2e1f; }
+  .flow-desc { font-size: 10pt; color: #7a6b5d; margin-top: 4pt; }
+  .flow-arrow { font-size: 18pt; color: #f6a623; opacity: 0.4; }
+  .summary-row { display: flex; gap: 16pt; margin-top: 36pt; }
+  .summary-item { flex: 1; padding: 16pt; border-radius: 12pt; background: rgba(255,255,255,0.5); border: 1px solid rgba(0,0,0,0.04); text-align: center; }
+  .summary-num { font-family: 'Noto Serif SC', serif; font-size: 28pt; font-weight: 700; color: #f6a623; }
+  .summary-label { font-size: 10pt; color: #b8a99a; margin-top: 4pt; }
+  .page-num { position: absolute; bottom: 20pt; right: 30pt; font-size: 9pt; color: #b8a99a; }
+</style>
+</head>
+<body>
+  <div class="deco-circle deco-green"></div>
+
+  <div class="content-box">
+    <div style="margin-bottom:6pt;"><span class="badge">解决方案</span></div>
+    <h2>晴愈AI：AI + 心理学的疗愈伙伴</h2>
+
+    <div class="flow-row">
+      <div class="flow-step">
+        <div class="flow-num" style="background:#f6a623;">1</div>
+        <div class="flow-label">情绪觉察</div>
+        <p class="flow-desc">识别情绪类型<br>与强度</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-num" style="background:#fda085;">2</div>
+        <div class="flow-label">身体扫描</div>
+        <p class="flow-desc">觉察情绪的<br>身体感受</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-num" style="background:#a78bfa;">3</div>
+        <div class="flow-label">AI对话</div>
+        <p class="flow-desc">CBT引导<br>认知重构</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-num" style="background:#7dd3fc;">4</div>
+        <div class="flow-label">文学安慰</div>
+        <p class="flow-desc">AI创作<br>治愈文字</p>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-step">
+        <div class="flow-num" style="background:#86c7a3;">5</div>
+        <div class="flow-label">情绪卡片</div>
+        <p class="flow-desc">生成专属<br>疗愈记录</p>
+      </div>
+    </div>
+
+    <div class="summary-row">
+      <div class="summary-item">
+        <div class="summary-num">10</div>
+        <p class="summary-label">智能体工具</p>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num">5</div>
+        <p class="summary-label">思维陷阱识别</p>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num">3</div>
+        <p class="summary-label">呼吸模式</p>
+      </div>
+      <div class="summary-item">
+        <div class="summary-num">24h</div>
+        <p class="summary-label">随时可用</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-num">03</div>
+</body>
+</html>

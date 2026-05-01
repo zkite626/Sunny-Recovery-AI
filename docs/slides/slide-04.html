@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<link rel="stylesheet" href="common.css">
+<style>
+  .deco-purple { background: #a78bfa; width: 200pt; height: 200pt; top: -60pt; left: -40pt; }
+  .content-box { position: absolute; top: 50pt; left: 70pt; right: 70pt; }
+  .two-col { display: flex; gap: 28pt; margin-top: 24pt; }
+  .col-left { flex: 1; }
+  .col-right { flex: 1; }
+  .feature-item { display: flex; gap: 12pt; align-items: flex-start; margin-bottom: 18pt; }
+  .feature-dot { width: 10pt; height: 10pt; border-radius: 50%; margin-top: 5pt; flex-shrink: 0; }
+  .feature-title { font-family: 'Noto Serif SC', serif; font-size: 14pt; font-weight: 600; color: #3d2e1f; }
+  .feature-desc { font-size: 11pt; color: #7a6b5d; margin-top: 3pt; line-height: 1.6; }
+  .chat-demo { padding: 16pt; border-radius: 12pt; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.04); }
+  .chat-bubble-ai { background: rgba(255,255,255,0.9); border: 1px solid rgba(0,0,0,0.04); border-radius: 12pt; padding: 10pt 14pt; margin-bottom: 8pt; font-size: 11pt; color: #3d2e1f; max-width: 85%; }
+  .chat-bubble-user { background: linear-gradient(135deg, #fef3c7, #fde2ca); border: 1px solid rgba(246,166,35,0.15); border-radius: 12pt; padding: 10pt 14pt; margin-bottom: 8pt; font-size: 11pt; color: #3d2e1f; max-width: 85%; margin-left: auto; text-align: right; }
+  .tool-tag { display: inline-block; background: rgba(134,199,163,0.15); border: 1px solid rgba(134,199,163,0.3); border-radius: 99pt; padding: 3pt 10pt; font-size: 9pt; color: #86c7a3; margin-top: 6pt; }
+  .page-num { position: absolute; bottom: 20pt; right: 30pt; font-size: 9pt; color: #b8a99a; }
+</style>
+</head>
+<body>
+  <div class="deco-circle deco-purple"></div>
+
+  <div class="content-box">
+    <div style="margin-bottom:6pt;"><span class="badge">核心功能一</span></div>
+    <h2>AI 智能体对话</h2>
+    <p style="margin-top:4pt; font-size:12pt;">不只是聊天——AI 能自主调用工具，主动提供帮助</p>
+
+    <div class="two-col">
+      <div class="col-left">
+        <div class="feature-item">
+          <div class="feature-dot" style="background:#f6a623;"></div>
+          <div>
+            <div class="feature-title">自主判断</div>
+            <p class="feature-desc">AI 根据用户表达，自主选择最合适的支持方式</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-dot" style="background:#86c7a3;"></div>
+          <div>
+            <div class="feature-title">工具调用</div>
+            <p class="feature-desc">10种工具：身体扫描、呼吸引导、心理测评、文学安慰等</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-dot" style="background:#a78bfa;"></div>
+          <div>
+            <div class="feature-title">跨会话记忆</div>
+            <p class="feature-desc">记住用户分享过的事情，体现持续关心</p>
+          </div>
+        </div>
+        <div class="feature-item">
+          <div class="feature-dot" style="background:#fda085;"></div>
+          <div>
+            <div class="feature-title">危机检测</div>
+            <p class="feature-desc">识别自伤关键词，立即提供心理援助热线</p>
+          </div>
+        </div>
+      </div>
+      <div class="col-right">
+        <div class="chat-demo">
+          <div class="chat-bubble-ai">你好呀 👋 我是晴愈，你的心理健康伙伴。有什么想聊的吗？</div>
+          <div class="chat-bubble-user">明天就要考试了，我觉得自己什么都没准备好……</div>
+          <div class="chat-bubble-ai">听起来你有些考前焦虑呢 😰 这种「来不及了」的想法，是不是让你更难开始复习？</div>
+          <div class="chat-bubble-user">是的，越焦虑越看不进去</div>
+          <div class="tool-tag">正在启动正念呼吸...</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="page-num">04</div>
+</body>
+</html>
