@@ -9,14 +9,18 @@ const modules = [
   { href: '/breathe', icon: '🫁', title: '正念呼吸', desc: '3种呼吸引导' },
   { href: '/gratitude', icon: '🌿', title: '感恩日记', desc: '记录美好瞬间' },
   { href: '/dashboard', icon: '📈', title: '我的记录', desc: '情绪变化趋势' },
+  { href: '/calendar', icon: '📅', title: '情绪日历', desc: '记录与回顾每一天' },
   { href: '/step5', icon: '🎨', title: '情绪卡片', desc: '专属疗愈记录' },
+  { href: '/calm', icon: '🌊', title: '沉浸式互动', desc: '流动粒子冥想空间' },
+  { href: '/meditation', icon: '🧘', title: '正念冥想', desc: 'AI引导冥想练习' },
+  { href: '/art', icon: '🎨', title: '情绪涂鸦', desc: '用画笔表达内心' },
 ];
 
 export default function Home() {
   return (
     <>
       <section className="hero">
-        <span className="hero-badge">☀ 晴愈AI · 心理健康智能伙伴</span>
+        <span className="hero-badge"><img src="/logo.png" alt="晴愈AI" className="hero-logo" /></span>
         <h1 className="hero-title">
           直面情绪<br /><em>向阳而生</em>
         </h1>

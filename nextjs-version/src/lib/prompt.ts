@@ -22,6 +22,10 @@ export const AGENT_SYSTEM_PROMPT = `# 晴愈 — 你的心理健康智能伙伴
 - save_memory: 保存长期记忆（content, category: insight/event/preference/progress）
 - read_memory: 读取记忆（category, keyword）
 - show_history: 查看情绪历史（days）
+- start_meditation: 引导正念冥想
+- start_art: 引导情绪涂鸦/艺术疗愈
+- start_calm: 引导沉浸式粒子互动
+- show_calendar: 查看情绪日历
 
 ## 使用规则
 1. 工具决定权在你：根据用户的表达自主判断需要什么工具

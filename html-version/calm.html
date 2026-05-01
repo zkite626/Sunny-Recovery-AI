@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>沉浸式互动 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <style>
+    .calm-canvas { position:fixed; inset:0; background:#fdf8f0; touch-action:none; cursor:none; }
+    .calm-controls { position:fixed; bottom:0; left:0; right:0; padding:var(--sp-4) var(--sp-4) calc(var(--sp-8) + env(safe-area-inset-bottom,0px)); background:linear-gradient(transparent,rgba(253,248,240,0.9)); display:flex; flex-direction:column; align-items:center; gap:var(--sp-3); z-index:10; transition:transform 0.5s ease; }
+    .calm-controls.hidden { transform:translateY(100%); }
+    .calm-hint { position:fixed; top:var(--sp-4); right:var(--sp-4); font-size:var(--text-xs); color:var(--text-ghost); z-index:10; }
+    .calm-back { position:fixed; top:var(--sp-4); left:var(--sp-4); z-index:20; }
+  </style>
+</head>
+<body>
+  <canvas class="calm-canvas" id="calmCanvas"></canvas>
+  <a href="index.html" class="btn btn-ghost btn-sm calm-back">← 返回</a>
+  <div class="calm-hint" id="calmHint">移动鼠标与粒子互动</div>
+
+  <div class="calm-controls" id="calmControls">
+    <div style="display:flex; gap:var(--sp-2);">
+      <button class="tag active" onclick="setMood('calm')" id="mood-calm">平静</button>
+      <button class="tag" onclick="setMood('energetic')" id="mood-energetic">活力</button>
+      <button class="tag" onclick="setMood('melancholy')" id="mood-melancholy">忧郁</button>
+      <button class="tag" onclick="setMood('joyful')" id="mood-joyful">喜悦</button>
+    </div>
+    <div style="display:flex; align-items:center; gap:var(--sp-2); font-size:var(--text-sm);">
+      <span>粒子数</span>
+      <input type="range" min="100" max="600" step="50" value="300" id="particleSlider" style="width:120px;" oninput="setParticleCount(this.value)">
+      <span id="particleCountLabel">300</span>
+    </div>
+  </div>
+
+  <script>
+    // ── Flow Field Particles ──
+    const canvas = document.getElementById('calmCanvas');
+    const ctx = canvas.getContext('2d');
+    let W, H, particles = [], interactionPoint = null;
+    let currentMood = 'calm';
+    let targetCount = 300;
+    let noiseOffset = 0;
+
+    const PALETTES = {
+      calm: { colors:['#86c7a3','#7dd3fc','#a78bfa','#d4edda'], bg:'rgba(253,248,240,0.03)' },
+      energetic: { colors:['#f6a623','#fda085','#fcd34d','#f87171'], bg:'rgba(253,248,240,0.03)' },
+      melancholy: { colors:['#a78bfa','#7dd3fc','#818cf8','#c4b5fd'], bg:'rgba(248,240,253,0.03)' },
+      joyful: { colors:['#fcd34d','#86c7a3','#f6a623','#fda085'], bg:'rgba(254,243,199,0.03)' },
+    };
+
+    function resize() {
+      W = canvas.width = window.innerWidth;
+      H = canvas.height = window.innerHeight;
+    }
+    resize();
+    window.addEventListener('resize', resize);
+
+    // Simple noise
+    function noise(x, y) {
+      const ix=Math.floor(x), iy=Math.floor(y);
+      const fx=x-ix, fy=y-iy;
+      const hash=(a,b)=>{let h=(a*374761393+b*668265263+1274126177)|0;h=((h^(h>>13))*1274126177)|0;return(h&0x7fffffff)/0x7fffffff;};
+      const v00=hash(ix,iy),v10=hash(ix+1,iy),v01=hash(ix,iy+1),v11=hash(ix+1,iy+1);
+      const sx=fx*fx*(3-2*fx),sy=fy*fy*(3-2*fy);
+      return v00*(1-sx)*(1-sy)+v10*sx*(1-sy)+v01*(1-sx)*sy+v11*sx*sy;
+    }
+
+    class Particle {
+      constructor() {
+        const p = PALETTES[currentMood];
+        this.x = Math.random()*W; this.y = Math.random()*H;
+        this.vx = 0; this.vy = 0;
+        this.color = p.colors[Math.floor(Math.random()*p.colors.length)];
+        this.alpha = Math.random()*0.5+0.3;
+        this.size = Math.random()*2+1;
+        this.maxSpeed = Math.random()*1.5+1;
+      }
+      update(flowAngle) {
+        this.vx += Math.cos(flowAngle)*0.3;
+        this.vy += Math.sin(flowAngle)*0.3;
+        if (interactionPoint) {
+          const dx=this.x-interactionPoint.x, dy=this.y-interactionPoint.y;
+          const dist=Math.sqrt(dx*dx+dy*dy);
+          if(dist<150&&dist>0){const f=(1-dist/150)*2;this.vx+=(interactionPoint.vx*f*0.1)+(dx/dist*f*0.5);this.vy+=(interactionPoint.vy*f*0.1)+(dy/dist*f*0.5);}
+        }
+        const spd=Math.sqrt(this.vx*this.vx+this.vy*this.vy);
+        if(spd>this.maxSpeed){this.vx=(this.vx/spd)*this.maxSpeed;this.vy=(this.vy/spd)*this.maxSpeed;}
+        this.vx*=0.98; this.vy*=0.98;
+        this.x+=this.vx; this.y+=this.vy;
+        if(this.x<0)this.x=W;if(this.x>W)this.x=0;if(this.y<0)this.y=H;if(this.y>H)this.y=0;
+      }
+    }
+
+    function initParticles() {
+      particles = [];
+      for (let i = 0; i < targetCount; i++) particles.push(new Particle());
+    }
+    initParticles();
+
+    const scale = 20;
+    function animate() {
+      noiseOffset += 0.003;
+      const p = PALETTES[currentMood];
+      ctx.fillStyle = p.bg;
+      ctx.fillRect(0,0,W,H);
+      for (const pt of particles) {
+        const col=Math.floor(pt.x/scale), row=Math.floor(pt.y/scale);
+        const angle=noise(col*0.1+noiseOffset,row*0.1+noiseOffset)*Math.PI*4;
+        pt.update(angle);
+        ctx.beginPath(); ctx.arc(pt.x,pt.y,pt.size,0,Math.PI*2);
+        ctx.fillStyle=pt.color; ctx.globalAlpha=pt.alpha; ctx.fill();
+      }
+      ctx.globalAlpha=1;
+      if(interactionPoint){ctx.beginPath();ctx.arc(interactionPoint.x,interactionPoint.y,8,0,Math.PI*2);ctx.fillStyle='rgba(246,166,35,0.4)';ctx.fill();}
+      requestAnimationFrame(animate);
+    }
+    animate();
+
+    canvas.addEventListener('pointermove', e => {
+      const x=e.clientX, y=e.clientY;
+      interactionPoint = { x, y, vx: interactionPoint?(x-interactionPoint.x)*0.3:0, vy: interactionPoint?(y-interactionPoint.y)*0.3:0 };
+      document.getElementById('calmControls').classList.remove('hidden');
+    });
+    canvas.addEventListener('pointerleave', () => { interactionPoint=null; });
+
+    function setMood(m) {
+      currentMood = m;
+      document.querySelectorAll('[id^="mood-"]').forEach(b=>b.classList.remove('active'));
+      document.getElementById('mood-'+m).classList.add('active');
+      particles.forEach(pt => {
+        const p = PALETTES[m];
+        pt.color = p.colors[Math.floor(Math.random()*p.colors.length)];
+      });
+    }
+
+    function setParticleCount(v) {
+      targetCount = Number(v);
+      document.getElementById('particleCountLabel').textContent = v;
+      while(particles.length<targetCount) particles.push(new Particle());
+      if(particles.length>targetCount) particles.length=targetCount;
+    }
+
+    // Hide controls after 5s
+    let hideTimer;
+    canvas.addEventListener('pointermove', () => {
+      clearTimeout(hideTimer);
+      hideTimer = setTimeout(() => document.getElementById('calmControls').classList.add('hidden'), 5000);
+    });
+  </script>
+</body>
+</html>

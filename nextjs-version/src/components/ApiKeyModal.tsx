@@ -25,7 +25,7 @@ export default function ApiKeyModal() {
         onClick={() => setOpen(true)}
         style={getApiKey() ? { opacity: 0.5 } : undefined}
       >
-        {getApiKey() ? 'API Key 已设置' : '设置 API Key'}
+        {getApiKey() ? 'API Key 已设置' : '自定义 API Key（可选）'}
       </button>
 
       {open && (
@@ -38,7 +38,7 @@ export default function ApiKeyModal() {
               设置 API Key
             </h3>
             <p className="text-body" style={{ marginBottom: 'var(--sp-5)' }}>
-              需要 DeepSeek API 来驱动 AI 功能。
+              服务器已配置默认 Key，此项为可选覆盖。
             </p>
             <input
               type="password"

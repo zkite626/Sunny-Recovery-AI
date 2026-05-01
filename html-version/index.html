@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>晴愈AI · 直面情绪 向阳而生</title>
   <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="assets/logo.png">
 </head>
 <body>
   <div class="sunshine">
@@ -18,7 +20,7 @@
   <div class="app">
     <!-- 标题区 -->
     <section class="hero">
-      <span class="hero-badge">☀ 晴愈AI · 心理健康智能伙伴</span>
+      <span class="hero-badge"><img src="assets/logo.png" alt="晴愈AI" class="hero-logo"></span>
       <h1 class="hero-title">直面情绪<br><em>向阳而生</em></h1>
       <p class="hero-subtitle">
         结合 AI 与心理学，陪你觉察情绪、<br>
@@ -69,11 +71,31 @@
           <div class="module-title">情绪卡片</div>
           <div class="module-desc">专属疗愈记录</div>
         </a>
+        <a href="calendar.html" class="module-card glass">
+          <span class="module-icon">📅</span>
+          <div class="module-title">情绪日历</div>
+          <div class="module-desc">记录与回顾每一天</div>
+        </a>
+        <a href="calm.html" class="module-card glass">
+          <span class="module-icon">🌊</span>
+          <div class="module-title">沉浸式互动</div>
+          <div class="module-desc">流动粒子冥想空间</div>
+        </a>
+        <a href="meditation.html" class="module-card glass">
+          <span class="module-icon">🧘</span>
+          <div class="module-title">正念冥想</div>
+          <div class="module-desc">AI引导冥想练习</div>
+        </a>
+        <a href="art.html" class="module-card glass">
+          <span class="module-icon">🎨</span>
+          <div class="module-title">情绪涂鸦</div>
+          <div class="module-desc">用画笔表达内心</div>
+        </a>
       </div>
 
       <!-- API Key -->
       <div class="text-center">
-        <button class="btn btn-ghost btn-sm" onclick="openApiModal()" id="apiKeyBtn">🔑 设置 API Key</button>
+        <button class="btn btn-ghost btn-sm" onclick="openApiModal()" id="apiKeyBtn">🔑 自定义 API Key（可选）</button>
       </div>
     </div>
 
@@ -88,7 +110,7 @@
     <div class="modal-box" style="position:relative;">
       <button class="modal-close" onclick="closeApiModal()">×</button>
       <h3 class="heading-section" style="margin-bottom:var(--sp-3); font-size:var(--text-xl);">🔑 设置 API Key</h3>
-      <p class="text-body" style="margin-bottom:var(--sp-5);">需要 DeepSeek API 来驱动 AI 功能。</p>
+      <p class="text-body" style="margin-bottom:var(--sp-5);">服务器已配置默认 Key，此项为可选覆盖。</p>
       <input type="password" class="input-line" id="apiKeyInput" placeholder="sk-..." style="margin-bottom:var(--sp-4);">
       <button class="btn btn-sun" style="width:100%;" onclick="saveApiKey()">保存</button>
       <p class="text-caption" style="margin-top:var(--sp-3); text-align:center;">Key 仅保存在本地浏览器，不会上传</p>

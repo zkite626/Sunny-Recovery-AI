@@ -5,7 +5,7 @@
    ═══════════════════════════════════════════════════════════ */
 
 /* ── Google Fonts ─────────────────────────────────────────── */
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap');
+@import url('https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap');
 
 /* ── Design Tokens ────────────────────────────────────────── */
 :root {
@@ -888,16 +888,17 @@ body {
 .hero-badge {
   display: inline-flex;
   align-items: center;
-  gap: var(--sp-2);
-  padding: var(--sp-2) var(--sp-5);
+  justify-content: center;
+  padding: var(--sp-2) var(--sp-4);
   border-radius: var(--r-full);
   background: rgba(246,166,35,0.08);
   border: 1px solid rgba(246,166,35,0.15);
-  font-size: var(--text-xs);
-  color: var(--sun-core);
-  letter-spacing: 0.08em;
-  font-weight: 600;
   animation: fadeDown 0.8s var(--ease-out-expo) both;
+}
+
+.hero-logo {
+  height: 96px; width: auto; object-fit: contain;
+  vertical-align: middle;
 }
 
 @keyframes fadeDown {
@@ -1573,13 +1574,38 @@ body {
   border-width: 2px;
 }
 
+/* ── Bottom Navigation ── */
+.bottom-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  padding: var(--sp-2) 0 calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
+  background: rgba(253,248,240,0.95); backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.bottom-nav a {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 2px; text-decoration: none; padding: var(--sp-1) 0; color: var(--text-secondary);
+}
+
+/* ── Touch Targets ── */
+@media (pointer: coarse) {
+  button, a.btn, .tag, .assess-option, .module-card, .cal-day { min-height: 44px; min-width: 44px; }
+}
+
 /* ── Responsive ───────────────────────────────────────────── */
+@media (max-width: 375px) {
+  :root { --text-4xl: 1.75rem; --text-5xl: 2.2rem; }
+  .page { padding: var(--sp-5) var(--sp-3) calc(var(--sp-5) + 76px + env(safe-area-inset-bottom, 0px)); }
+  .module-grid { grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
+  .hero-title { font-size: 1.8rem; }
+  .disclaimer { padding-bottom: calc(var(--sp-8) + 76px + env(safe-area-inset-bottom, 0px)); }
+}
+
 @media (max-width: 640px) {
   :root {
     --text-4xl: 2rem;
     --text-5xl: 2.5rem;
   }
-  .page { padding: var(--sp-6) var(--sp-4); }
+  .page { padding: var(--sp-6) var(--sp-4) calc(var(--sp-6) + 76px + env(safe-area-inset-bottom, 0px)); }
   .glass { padding: var(--sp-6); }
   .mode-grid { grid-template-columns: 1fr; }
   .module-grid { grid-template-columns: repeat(2, 1fr); }
@@ -1590,4 +1616,6 @@ body {
   .dashboard-record-emoji { width: 36px; height: 36px; font-size: 1.3rem; }
   .chart-container { padding: var(--sp-4); }
   .hero { padding: var(--sp-8) var(--sp-4) var(--sp-6); gap: var(--sp-6); }
+  .disclaimer { padding-bottom: calc(var(--sp-8) + 76px + env(safe-area-inset-bottom, 0px)); }
+  .bottom-nav { display: flex; }
 }

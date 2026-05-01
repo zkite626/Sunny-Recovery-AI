@@ -8,10 +8,8 @@ import {
   PHQ9_OPTIONS,
   GAD7_QUESTIONS,
   GAD7_OPTIONS,
-  ASSESSMENT_ANALYSIS_PROMPT,
 } from '@/lib/prompt';
 import { getApiKey, saveAssessmentResult } from '@/lib/storage';
-import { callAI } from '@/lib/api';
 
 type AssessmentType = 'phq9' | 'gad7';
 
@@ -136,21 +134,23 @@ function AssessmentContent() {
           answers: newAnswers,
         });
 
-        const apiKey = getApiKey();
-        if (apiKey) {
-          setAnalyzing(true);
-          const title = type === 'phq9' ? 'PHQ-9 抑郁筛查' : 'GAD-7 焦虑筛查';
-          const levelLabel = LEVEL_CONFIG[resultLevel]?.label || '';
-          callAI(ASSESSMENT_ANALYSIS_PROMPT, [
-            {
-              role: 'user',
-              content: `量表：${title}\n总分：${totalScore} / ${maxScore}\n等级：${levelLabel}\n各题作答：${newAnswers.join(', ')}`,
-            },
-          ])
-            .then((text) => setAiAnalysis(text))
-            .catch(() => {})
-            .finally(() => setAnalyzing(false));
-        }
+        setAnalyzing(true);
+        fetch('/api/assessment', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            type,
+            score: totalScore,
+            maxScore,
+            level: resultLevel,
+            answers: newAnswers,
+            userApiKey: getApiKey() || undefined,
+          }),
+        })
+          .then((res) => res.ok ? res.json() : Promise.reject(new Error('API 调用失败')))
+          .then((data) => setAiAnalysis(data.text))
+          .catch(() => {})
+          .finally(() => setAnalyzing(false));
       }
     },
     [answers, currentIndex, questions, type]

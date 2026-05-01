@@ -4,53 +4,63 @@
 <meta charset="UTF-8">
 <link rel="stylesheet" href="common.css">
 <style>
-  .deco-green { background: #86c7a3; width: 200pt; height: 200pt; top: -60pt; right: -40pt; }
+  .deco-gold { background: #f6a623; width: 240pt; height: 240pt; top: -80pt; left: -60pt; }
   .content-box { position: absolute; top: 50pt; left: 70pt; right: 70pt; }
-  .stats-row { display: flex; gap: 20pt; margin-top: 28pt; }
-  .stat-card { flex: 1; padding: 24pt; border-radius: 14pt; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.04); text-align: center; }
-  .stat-num { font-family: 'Noto Serif SC', serif; font-size: 40pt; font-weight: 700; line-height: 1; }
-  .stat-unit { font-size: 14pt; font-weight: 400; }
-  .stat-label { font-size: 12pt; color: #7a6b5d; margin-top: 8pt; }
-  .stat-desc { font-size: 10pt; color: #b8a99a; margin-top: 4pt; }
-  .quote-box { margin-top: 28pt; padding: 20pt 28pt; border-radius: 12pt; background: rgba(246,166,35,0.06); border: 1px solid rgba(246,166,35,0.12); }
-  .quote-mark { font-family: 'Noto Serif SC', serif; font-size: 28pt; color: #f6a623; opacity: 0.3; line-height: 1; }
-  .quote-text { font-family: 'Noto Serif SC', serif; font-size: 14pt; color: #3d2e1f; line-height: 1.8; margin-top: 4pt; }
+  .innov-list { margin-top: 20pt; }
+  .innov-item { display: flex; gap: 16pt; align-items: flex-start; margin-bottom: 16pt; }
+  .innov-num { width: 36pt; height: 36pt; border-radius: 8pt; display: flex; align-items: center; justify-content: center; font-family: 'Noto Serif SC', serif; font-weight: 700; font-size: 16pt; color: #fff; flex-shrink: 0; }
+  .innov-content { flex: 1; }
+  .innov-title { font-family: 'Noto Serif SC', serif; font-size: 15pt; font-weight: 600; color: #3d2e1f; }
+  .innov-desc { font-size: 11pt; color: #7a6b5d; margin-top: 3pt; line-height: 1.6; }
   .page-num { position: absolute; bottom: 20pt; right: 30pt; font-size: 9pt; color: #b8a99a; }
 </style>
 </head>
 <body>
-  <div class="deco-circle deco-green"></div>
+  <div class="deco-circle deco-gold"></div>
 
   <div class="content-box">
-    <div style="margin-bottom:6pt;"><span class="badge">实践成果</span></div>
-    <h2>连续 7 天实践，效果显著</h2>
-    <p style="margin-top:4pt; font-size:12pt;">小组成员亲身实践数据</p>
+    <div style="margin-bottom:6pt;"><span class="badge">创新亮点</span></div>
+    <h2>五大创新亮点</h2>
 
-    <div class="stats-row">
-      <div class="stat-card">
-        <div class="stat-num" style="color:#86c7a3;">65<span class="stat-unit">%</span></div>
-        <div class="stat-label">内耗频率下降</div>
-        <p class="stat-desc">从每天多次内耗<br>减少到偶尔发生</p>
+    <div class="innov-list">
+      <div class="innov-item">
+        <div class="innov-num" style="background:#f6a623;">1</div>
+        <div class="innov-content">
+          <div class="innov-title">AI 智能体架构：不只是聊天，更是能「做事」的伙伴</div>
+          <p class="innov-desc">AI 自主判断用户需要，主动调用 14 种工具，从「被动回答」到「主动支持」</p>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:#f6a623;">↑</div>
-        <div class="stat-label">任务启动速度提升</div>
-        <p class="stat-desc">拖延时间明显缩短<br>行动力增强</p>
+      <div class="innov-item">
+        <div class="innov-num" style="background:#a78bfa;">2</div>
+        <div class="innov-content">
+          <div class="innov-title">结构化疗愈流程：从觉察到行动的完整闭环</div>
+          <p class="innov-desc">5步引导整合循证心理学方法，用户跟随引导即可完成认知重构</p>
+        </div>
       </div>
-      <div class="stat-card">
-        <div class="stat-num" style="color:#a78bfa;">↓</div>
-        <div class="stat-label">焦虑自评分数降低</div>
-        <p class="stat-desc">自我报告焦虑水平<br>持续下降</p>
+      <div class="innov-item">
+        <div class="innov-num" style="background:#86c7a3;">3</div>
+        <div class="innov-content">
+          <div class="innov-title">数字媒体艺术疗愈：用艺术与科技改善情绪</div>
+          <p class="innov-desc">手势粒子互动、AI冥想引导、情绪涂鸦，多维度覆盖情绪感知通道</p>
+        </div>
       </div>
-    </div>
-
-    <div class="quote-box">
-      <div class="quote-mark">"</div>
-      <p class="quote-text">做完 5 步疗愈流程后，我发现自己「来不及了」的想法变少了，开始做事变得更果断了。</p>
-      <p style="font-size:10pt; color:#b8a99a; margin-top:8pt;">—— 实践参与者反馈</p>
+      <div class="innov-item">
+        <div class="innov-num" style="background:#fda085;">4</div>
+        <div class="innov-content">
+          <div class="innov-title">多端适配 + 响应式：移动端优先的完整体验</div>
+          <p class="innov-desc">底部导航、触摸手势、PWA支持，完整响应式适配所有设备</p>
+        </div>
+      </div>
+      <div class="innov-item">
+        <div class="innov-num" style="background:#7dd3fc;">5</div>
+        <div class="innov-content">
+          <div class="innov-title">隐私优先 + 服务端代理：安全可靠的技术架构</div>
+          <p class="innov-desc">API Key 支持 .env 配置，服务端代理保护密钥，数据保存在浏览器本地</p>
+        </div>
+      </div>
     </div>
   </div>
 
-  <div class="page-num">09</div>
+  <div class="page-num">08</div>
 </body>
 </html>

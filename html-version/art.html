@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>情绪涂鸦 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <style>
+    .art-toolbar { display:flex; gap:var(--sp-2); flex-wrap:wrap; justify-content:center; margin-bottom:var(--sp-3); }
+    .art-palette { display:flex; flex-wrap:wrap; gap:var(--sp-1); justify-content:center; margin-bottom:var(--sp-3); }
+    .art-color { width:28px; height:28px; border-radius:50%; cursor:pointer; border:2px solid rgba(0,0,0,0.1); transition:transform 0.15s; }
+    .art-color:hover,.art-color.active { transform:scale(1.2); border-color:var(--text-primary); }
+    .art-size-row { display:flex; align-items:center; gap:var(--sp-2); justify-content:center; margin-bottom:var(--sp-3); font-size:var(--text-sm); }
+    .art-canvas-wrap { padding:var(--sp-2); margin-bottom:var(--sp-3); overflow:hidden; }
+    .art-canvas-wrap canvas { width:100%; border-radius:var(--radius-lg); touch-action:none; cursor:crosshair; }
+    .art-actions { display:flex; gap:var(--sp-2); flex-wrap:wrap; justify-content:center; margin-bottom:var(--sp-4); }
+    .art-gallery-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--sp-3); }
+    .art-gallery-item { position:relative; }
+    .art-gallery-item img { width:100%; border-radius:var(--radius-sm); border:1px solid var(--glass-border); }
+    .art-gallery-del { position:absolute; top:4px; right:4px; background:rgba(0,0,0,0.5); color:#fff; border:none; border-radius:50%; width:24px; height:24px; cursor:pointer; font-size:12px; }
+  </style>
+</head>
+<body>
+  <div class="sunshine"><div class="orb orb--1"></div><div class="orb orb--2"></div></div>
+  <div class="grain"></div>
+  <div class="app">
+    <div class="page page-enter">
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <button class="btn btn-ghost btn-sm" onclick="toggleGallery()">🖼 画廊 (<span id="galleryCount">0</span>)</button>
+      </div>
+
+      <h2 class="heading-section text-center" style="margin-bottom:var(--sp-3);">🎨 情绪涂鸦</h2>
+      <p class="text-body text-center" style="margin-bottom:var(--sp-4); color:var(--text-secondary); font-size:var(--text-sm);">用画笔表达内心的感受</p>
+
+      <!-- Brush selector -->
+      <div class="art-toolbar">
+        <button class="tag active" onclick="setBrush('watercolor',this)">💧 水彩</button>
+        <button class="tag" onclick="setBrush('oil',this)">🖌 油画</button>
+        <button class="tag" onclick="setBrush('crayon',this)">🖍 蜡笔</button>
+        <button class="tag" onclick="setBrush('pencil',this)">✏️ 铅笔</button>
+      </div>
+
+      <!-- Colors -->
+      <div class="glass" style="padding:var(--sp-3); margin-bottom:var(--sp-3);">
+        <div class="art-palette" id="palette"></div>
+      </div>
+
+      <!-- Size -->
+      <div class="art-size-row">
+        <span>笔触大小</span>
+        <input type="range" min="2" max="40" value="12" id="sizeSlider" style="width:120px;" oninput="brushSize=+this.value; document.getElementById('sizeLabel').textContent=this.value;">
+        <span id="sizeLabel">12</span>
+        <span id="sizePreview" style="display:inline-block; width:12px; height:12px; border-radius:50%; background:#a78bfa;"></span>
+      </div>
+
+      <!-- Canvas -->
+      <div class="art-canvas-wrap glass">
+        <canvas id="artCanvas" width="800" height="500"></canvas>
+      </div>
+
+      <!-- Actions -->
+      <div class="art-actions">
+        <button class="btn btn-sage btn-sm" onclick="analyzeMood()">🔍 AI 情绪分析</button>
+        <button class="btn btn-sun btn-sm" onclick="saveToGallery()">💾 保存到画廊</button>
+        <button class="btn btn-ghost btn-sm" onclick="clearCanvas()">🗑 清空画布</button>
+      </div>
+
+      <!-- Analysis -->
+      <div class="glass" id="analysisResult" style="padding:var(--sp-5); margin-bottom:var(--sp-4); display:none;">
+        <div style="font-weight:600; font-size:var(--text-sm); color:var(--sun-core); margin-bottom:var(--sp-2);">AI 情绪解读</div>
+        <p class="text-body" id="analysisText" style="font-size:var(--text-sm); white-space:pre-wrap;"></p>
+      </div>
+
+      <!-- Gallery -->
+      <div class="glass" id="gallerySection" style="padding:var(--sp-5); margin-bottom:var(--sp-4); display:none;">
+        <div style="font-weight:600; margin-bottom:var(--sp-3);">🖼 我的画廊</div>
+        <div class="art-gallery-grid" id="galleryGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    // ── Drawing Engine ──
+    const canvas = document.getElementById('artCanvas');
+    const ctx = canvas.getContext('2d');
+    let isDrawing = false, lastX=0, lastY=0;
+    let currentBrush = 'watercolor', currentColor = '#a78bfa', brushSize = 12;
+
+    ctx.fillStyle='#ffffff'; ctx.fillRect(0,0,canvas.width,canvas.height);
+
+    // Palette
+    const COLORS = ['#86c7a3','#a8d8c0','#7dd3fc','#bae6fd','#a78bfa','#818cf8','#f6a623','#fcd34d','#fda085','#f87171','#ef4444','#1f2937','#4b5563','#9ca3af','#f9fafb'];
+    const palEl = document.getElementById('palette');
+    COLORS.forEach(c => {
+      const d=document.createElement('div');
+      d.className='art-color'+(c===currentColor?' active':'');
+      d.style.background=c;
+      d.onclick=()=>{currentColor=c;document.querySelectorAll('.art-color').forEach(x=>x.classList.remove('active'));d.classList.add('active');document.getElementById('sizePreview').style.background=c;};
+      palEl.appendChild(d);
+    });
+
+    function setBrush(b,el) {
+      currentBrush=b;
+      document.querySelectorAll('.art-toolbar .tag').forEach(t=>t.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function getPos(e) {
+      const r=canvas.getBoundingClientRect();
+      return {x:(e.clientX-r.left)*(canvas.width/r.width), y:(e.clientY-r.top)*(canvas.height/r.height)};
+    }
+
+    canvas.addEventListener('pointerdown', e => {
+      e.preventDefault(); canvas.setPointerCapture(e.pointerId);
+      isDrawing=true; const p=getPos(e); lastX=p.x; lastY=p.y;
+    });
+    canvas.addEventListener('pointermove', e => {
+      if(!isDrawing) return;
+      const p=getPos(e); drawSegment(p.x,p.y); lastX=p.x; lastY=p.y;
+    });
+    canvas.addEventListener('pointerup', ()=>{isDrawing=false;});
+
+    function drawSegment(x,y) {
+      if(currentBrush==='watercolor'){
+        for(let i=0;i<6;i++){const jx=(Math.random()-0.5)*brushSize*0.4,jy=(Math.random()-0.5)*brushSize*0.4;ctx.beginPath();ctx.moveTo(lastX+jx,lastY+jy);ctx.lineTo(x+jx,y+jy);ctx.strokeStyle=currentColor;ctx.globalAlpha=0.03+Math.random()*0.02;ctx.lineWidth=brushSize*(0.8+Math.random()*0.4);ctx.lineCap='round';ctx.stroke();}
+        ctx.globalAlpha=1;
+      } else if(currentBrush==='oil'){
+        ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.strokeStyle=currentColor;ctx.globalAlpha=0.8;ctx.lineWidth=brushSize*1.5;ctx.lineCap='round';ctx.lineJoin='round';ctx.stroke();ctx.globalAlpha=1;
+      } else if(currentBrush==='crayon'){
+        const dx=x-lastX,dy=y-lastY,dist=Math.sqrt(dx*dx+dy*dy),steps=Math.max(1,Math.floor(dist/3));
+        for(let i=0;i<steps;i++){const t=i/steps,px=lastX+dx*t+(Math.random()-0.5)*2,py=lastY+dy*t+(Math.random()-0.5)*2;if(Math.random()>0.3){ctx.beginPath();ctx.arc(px,py,brushSize*0.3*(0.5+Math.random()*0.5),0,Math.PI*2);ctx.fillStyle=currentColor;ctx.globalAlpha=0.4+Math.random()*0.3;ctx.fill();}}ctx.globalAlpha=1;
+      } else {
+        ctx.beginPath();ctx.moveTo(lastX,lastY);ctx.lineTo(x,y);ctx.strokeStyle=currentColor;ctx.globalAlpha=0.6+Math.random()*0.3;ctx.lineWidth=Math.max(1,brushSize*0.3);ctx.lineCap='round';ctx.stroke();ctx.globalAlpha=1;
+      }
+    }
+
+    function clearCanvas(){ctx.fillStyle='#ffffff';ctx.fillRect(0,0,canvas.width,canvas.height);document.getElementById('analysisResult').style.display='none';}
+
+    // ── Color Analysis ──
+    function hexToHsl(r,g,b){r/=255;g/=255;b/=255;const mx=Math.max(r,g,b),mn=Math.min(r,g,b),l=(mx+mn)/2;let h=0,s=0;if(mx!==mn){const d=mx-mn;s=l>0.5?d/(2-mx-mn):d/(mx+mn);switch(mx){case r:h=((g-b)/d+(g<b?6:0))/6;break;case g:h=((b-r)/d+2)/6;break;case b:h=((r-g)/d+4)/6;break;}}return{h:h*360,s,l};}
+
+    function analyzeMood(){
+      const id=ctx.getImageData(0,0,canvas.width,canvas.height),px=id.data;
+      let warm=0,cool=0,dark=0,light=0,nonWhite=0;const hues={'红':0,'橙':0,'黄':0,'绿':0,'蓝':0,'紫':0};
+      for(let i=0;i<px.length;i+=16){const r=px[i],g=px[i+1],b=px[i+2],a=px[i+3];if(a<10)continue;if(r>245&&g>245&&b>245)continue;nonWhite++;const{h,l}=hexToHsl(r,g,b);if((h>=0&&h<=60)||(h>=300&&h<=360))warm++;else cool++;if(l<0.35)dark++;else if(l>0.65)light++;if(h<15||h>=345)hues['红']++;else if(h<45)hues['橙']++;else if(h<75)hues['黄']++;else if(h<165)hues['绿']++;else if(h<255)hues['蓝']++;else hues['紫']++;}
+      const sorted=Object.entries(hues).sort((a,b)=>b[1]-a[1]);
+      const dominant=sorted[0][1]>0?sorted[0][0]:'未知';
+      const coverage=nonWhite/(canvas.width*canvas.height/16);
+      const intensity=coverage>0.5?'密集饱满':coverage>0.2?'适中':'轻柔分散';
+      let desc=`画面以${dominant}色为主色调，`;
+      desc+=warm>cool*1.5?'暖色调占主导，画面温暖而富有能量':cool>warm*1.5?'冷色调占主导，画面宁静而内敛':'冷暖色调交织，画面情感丰富';
+      desc+=dark>nonWhite*0.5?'，整体偏暗':light>nonWhite*0.5?'，整体明亮':'';
+      desc+=`，笔触${intensity}。`;
+
+      // Call AI for poetic interpretation
+      document.getElementById('analysisResult').style.display='block';
+      document.getElementById('analysisText').textContent='分析中...';
+      callAI('你是一位温暖的心理艺术疗愈师。根据用户画作的颜色分析结果，用温暖共情的语言（60-100字）解读画作传达的情绪，给予温柔的肯定和鼓励。不要诊断。',[{role:'user',content:'画作色彩分析：'+desc}])
+        .then(t=>{document.getElementById('analysisText').textContent=t;})
+        .catch(()=>{document.getElementById('analysisText').textContent=desc;});
+    }
+
+    // ── Gallery ──
+    function getGallery(){try{return JSON.parse(localStorage.getItem('moodcoach_art_gallery')||'[]');}catch{return[];}}
+    function saveToGallery(){
+      const dataUrl=canvas.toDataURL('image/png');
+      const g=getGallery();g.unshift({id:Date.now(),timestamp:new Date().toISOString(),imageData:dataUrl});
+      localStorage.setItem('moodcoach_art_gallery',JSON.stringify(g.slice(0,10)));
+      renderGallery();alert('已保存到画廊 ✓');
+    }
+    function toggleGallery(){const s=document.getElementById('gallerySection');s.style.display=s.style.display==='none'?'block':'none';renderGallery();}
+    function renderGallery(){
+      const g=getGallery();document.getElementById('galleryCount').textContent=g.length;
+      const grid=document.getElementById('galleryGrid');grid.innerHTML='';
+      if(g.length===0){grid.innerHTML='<p class="text-caption">还没有保存的画作</p>';return;}
+      g.forEach(e=>{const d=document.createElement('div');d.className='art-gallery-item';d.innerHTML=`<img src="${e.imageData}" alt="涂鸦"><div style="font-size:var(--text-xs);color:var(--text-ghost);margin-top:var(--sp-1);">${new Date(e.timestamp).toLocaleDateString('zh-CN')}</div><button class="art-gallery-del" onclick="deleteArt(${e.id})">×</button>`;grid.appendChild(d);});
+    }
+    function deleteArt(id){const g=getGallery().filter(x=>x.id!==id);localStorage.setItem('moodcoach_art_gallery',JSON.stringify(g));renderGallery();}
+    renderGallery();
+  </script>
+</body>
+</html>

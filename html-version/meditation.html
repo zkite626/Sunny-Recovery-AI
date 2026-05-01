@@ -1,0 +1,181 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>正念冥想 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <style>
+    .med-type-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--sp-3); margin-bottom:var(--sp-6); }
+    .med-type-card { text-align:center; padding:var(--sp-5); cursor:pointer; transition:outline 0.2s; }
+    .med-type-card.selected { outline:2px solid var(--sun-core); }
+    .med-type-icon { font-size:2rem; }
+    .med-duration-row { display:flex; gap:var(--sp-2); margin-bottom:var(--sp-4); }
+    .med-duration-btn { flex:1; text-align:center; }
+    .med-sound-row { display:flex; gap:var(--sp-2); margin-bottom:var(--sp-6); }
+    .med-active-area { display:flex; flex-direction:column; align-items:center; justify-content:center; min-height:70vh; gap:var(--sp-6); }
+    .med-progress { width:100%; max-width:300px; }
+    .med-guidance { text-align:center; max-width:280px; font-size:var(--text-sm); color:var(--text-secondary); font-style:italic; }
+  </style>
+</head>
+<body>
+  <div class="sunshine"><div class="orb orb--1"></div><div class="orb orb--2"></div></div>
+  <div class="grain"></div>
+  <div class="app">
+    <div class="page page-enter">
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+      </div>
+
+      <!-- Phase: Select -->
+      <div id="phaseSelect">
+        <h2 class="heading-section text-center" style="margin-bottom:var(--sp-2);">🧘 正念冥想</h2>
+        <p class="text-body text-center" style="margin-bottom:var(--sp-6); color:var(--text-secondary);">选择冥想类型</p>
+        <div class="med-type-grid">
+          <div class="med-type-card glass selected" onclick="selectType('body_scan',this)" data-type="body_scan">
+            <div class="med-type-icon">🧘</div><div style="font-weight:600; margin-top:var(--sp-2);">身体扫描</div>
+            <div class="text-caption" style="margin-top:var(--sp-1);">引导你关注身体的每个部位</div>
+          </div>
+          <div class="med-type-card glass" onclick="selectType('breath',this)" data-type="breath">
+            <div class="med-type-icon">🌬</div><div style="font-weight:600; margin-top:var(--sp-2);">呼吸专注</div>
+            <div class="text-caption" style="margin-top:var(--sp-1);">专注于呼吸的节奏</div>
+          </div>
+          <div class="med-type-card glass" onclick="selectType('loving_kindness',this)" data-type="loving_kindness">
+            <div class="med-type-icon">💚</div><div style="font-weight:600; margin-top:var(--sp-2);">慈心冥想</div>
+            <div class="text-caption" style="margin-top:var(--sp-1);">培养对自己和他人的善意</div>
+          </div>
+          <div class="med-type-card glass" onclick="selectType('sleep',this)" data-type="sleep">
+            <div class="med-type-icon">🌙</div><div style="font-weight:600; margin-top:var(--sp-2);">助眠冥想</div>
+            <div class="text-caption" style="margin-top:var(--sp-1);">帮助你在平静中入睡</div>
+          </div>
+        </div>
+        <button class="btn btn-sun btn-lg" style="width:100%;" onclick="showConfig()">继续 →</button>
+      </div>
+
+      <!-- Phase: Config -->
+      <div id="phaseConfig" style="display:none;">
+        <h2 class="heading-section text-center" id="configTitle" style="margin-bottom:var(--sp-6);"></h2>
+        <div class="glass" style="padding:var(--sp-5); margin-bottom:var(--sp-4);">
+          <div style="font-weight:600; margin-bottom:var(--sp-3);">时长</div>
+          <div class="med-duration-row">
+            <button class="tag med-duration-btn" onclick="setDuration(5,this)">5分钟</button>
+            <button class="tag active med-duration-btn" onclick="setDuration(10,this)">10分钟</button>
+            <button class="tag med-duration-btn" onclick="setDuration(15,this)">15分钟</button>
+            <button class="tag med-duration-btn" onclick="setDuration(20,this)">20分钟</button>
+          </div>
+        </div>
+        <div style="display:flex; gap:var(--sp-3);">
+          <button class="btn btn-ghost" style="flex:1;" onclick="showSelect()">← 返回</button>
+          <button class="btn btn-sun btn-lg" style="flex:2;" onclick="startMeditation()">开始冥想</button>
+        </div>
+      </div>
+
+      <!-- Phase: Active -->
+      <div id="phaseActive" style="display:none;">
+        <div class="med-active-area">
+          <div class="med-progress">
+            <div class="assess-progress-bar"><div class="assess-progress-fill" id="medProgress"></div></div>
+            <div style="display:flex; justify-content:space-between; font-size:var(--text-xs); color:var(--text-ghost); margin-top:var(--sp-1);">
+              <span id="medElapsed">0:00</span><span id="medRemaining">-10:00</span>
+            </div>
+          </div>
+          <div id="breatheCircle" class="breathe-circle"><span id="breatheLabel">吸气...</span></div>
+          <div class="med-guidance" id="medGuidance"></div>
+          <button class="btn btn-ghost btn-sm" onclick="stopMeditation()">结束冥想</button>
+        </div>
+      </div>
+
+      <!-- Phase: Completed -->
+      <div id="phaseCompleted" style="display:none; text-align:center; padding-top:var(--sp-12);">
+        <div style="font-size:4rem; margin-bottom:var(--sp-4);">✨</div>
+        <h2 class="heading-section" style="margin-bottom:var(--sp-3);">冥想完成</h2>
+        <p class="text-body" id="completedInfo" style="margin-bottom:var(--sp-8); color:var(--text-secondary);"></p>
+        <div style="display:flex; flex-direction:column; gap:var(--sp-3); max-width:280px; margin:0 auto;">
+          <button class="btn btn-sun btn-lg" onclick="resetAll()">再来一次</button>
+          <a href="index.html" class="btn btn-ghost">返回首页</a>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script src="js/api.js"></script>
+  <script>
+    let medType = 'body_scan', medDuration = 10, elapsed = 0, timerInterval, breathTimeout;
+    const TYPE_NAMES = { body_scan:'身体扫描', breath:'呼吸专注', loving_kindness:'慈心冥想', sleep:'助眠冥想' };
+    const PATTERNS = { body_scan:{inhale:4,hold:4,exhale:4}, breath:{inhale:4,hold:7,exhale:8}, loving_kindness:{inhale:4,hold:4,exhale:4}, sleep:{inhale:4,hold:2,exhale:6} };
+
+    function selectType(t, el) {
+      medType = t;
+      document.querySelectorAll('.med-type-card').forEach(c=>c.classList.remove('selected'));
+      el.classList.add('selected');
+    }
+    function showConfig() {
+      document.getElementById('phaseSelect').style.display='none';
+      document.getElementById('phaseConfig').style.display='block';
+      document.getElementById('configTitle').textContent = TYPE_NAMES[medType];
+    }
+    function showSelect() {
+      document.getElementById('phaseConfig').style.display='none';
+      document.getElementById('phaseSelect').style.display='block';
+    }
+    function setDuration(d, el) {
+      medDuration = d;
+      document.querySelectorAll('.med-duration-btn').forEach(b=>b.classList.remove('active'));
+      el.classList.add('active');
+    }
+
+    function startMeditation() {
+      document.getElementById('phaseConfig').style.display='none';
+      document.getElementById('phaseActive').style.display='block';
+      elapsed = 0;
+      runBreathCycle();
+      timerInterval = setInterval(()=> {
+        elapsed++;
+        const total = medDuration*60;
+        document.getElementById('medProgress').style.width = (elapsed/total*100)+'%';
+        document.getElementById('medElapsed').textContent = fmtTime(elapsed);
+        document.getElementById('medRemaining').textContent = '-'+fmtTime(Math.max(0,total-elapsed));
+        if(elapsed>=total) stopMeditation();
+      },1000);
+    }
+
+    function runBreathCycle() {
+      const p = PATTERNS[medType];
+      const phases = [{phase:'inhale',dur:p.inhale},{phase:'hold',dur:p.hold},{phase:'exhale',dur:p.exhale}];
+      let idx=0;
+      function next() {
+        const cur=phases[idx%phases.length];
+        const circle=document.getElementById('breatheCircle');
+        const label=document.getElementById('breatheLabel');
+        const labels={inhale:'吸气...',hold:'屏住...',exhale:'呼气...'};
+        label.textContent=labels[cur.phase];
+        circle.style.transition=`transform ${cur.dur}s ease-in-out`;
+        circle.style.transform=cur.phase==='exhale'?'scale(0.6)':'scale(1)';
+        circle.style.opacity=cur.phase==='hold'?'0.8':'1';
+        idx++;
+        breathTimeout=setTimeout(next,cur.dur*1000);
+      }
+      next();
+    }
+
+    function stopMeditation() {
+      clearInterval(timerInterval); clearTimeout(breathTimeout);
+      document.getElementById('phaseActive').style.display='none';
+      document.getElementById('phaseCompleted').style.display='block';
+      document.getElementById('completedInfo').textContent = `${TYPE_NAMES[medType]} · ${medDuration} 分钟 — 你为自己留出了一段安静的时光，这很棒 🌿`;
+      // Save session
+      const key='moodcoach_meditations';
+      try { const d=JSON.parse(localStorage.getItem(key)||'[]'); d.push({id:Date.now(),type:medType,duration:medDuration,completedAt:new Date().toISOString()}); localStorage.setItem(key,JSON.stringify(d.slice(-50))); } catch{}
+    }
+    function resetAll() {
+      document.getElementById('phaseCompleted').style.display='none';
+      document.getElementById('phaseSelect').style.display='block';
+      elapsed=0;
+    }
+    function fmtTime(s){return Math.floor(s/60)+':'+String(s%60).padStart(2,'0');}
+  </script>
+</body>
+</html>

@@ -20,18 +20,19 @@
   <div class="slide-container" id="slide-4"><iframe src="slide-04.html" width="960" height="540" style="border:none;"></iframe></div>
   <div class="slide-container" id="slide-5"><iframe src="slide-05.html" width="960" height="540" style="border:none;"></iframe></div>
   <div class="slide-container" id="slide-6"><iframe src="slide-06.html" width="960" height="540" style="border:none;"></iframe></div>
-  <div class="slide-container" id="slide-7"><iframe src="slide-07.html" width="960" height="540" style="border:none;"></iframe></div>
-  <div class="slide-container" id="slide-8"><iframe src="slide-08.html" width="960" height="540" style="border:none;"></iframe></div>
-  <div class="slide-container" id="slide-9"><iframe src="slide-09.html" width="960" height="540" style="border:none;"></iframe></div>
-  <div class="slide-container" id="slide-10"><iframe src="slide-10.html" width="960" height="540" style="border:none;"></iframe></div>
+  <div class="slide-container" id="slide-7"><iframe src="slide-07-new.html" width="960" height="540" style="border:none;"></iframe></div>
+  <div class="slide-container" id="slide-8"><iframe src="slide-07.html" width="960" height="540" style="border:none;"></iframe></div>
+  <div class="slide-container" id="slide-9"><iframe src="slide-08.html" width="960" height="540" style="border:none;"></iframe></div>
+  <div class="slide-container" id="slide-10"><iframe src="slide-09.html" width="960" height="540" style="border:none;"></iframe></div>
+  <div class="slide-container" id="slide-11"><iframe src="slide-10.html" width="960" height="540" style="border:none;"></iframe></div>
 
   <div class="controls">
-    <kbd>←</kbd> <kbd>→</kbd> 翻页 &nbsp;|&nbsp; 当前 <span id="current">1</span> / 10
+    <kbd>←</kbd> <kbd>→</kbd> 翻页 &nbsp;|&nbsp; 当前 <span id="current">1</span> / 11
   </div>
 
   <script>
     let current = 1;
-    const total = 10;
+    const total = 11;
     function show(n) {
       document.querySelectorAll('.slide-container').forEach(el => el.classList.remove('active'));
       document.getElementById('slide-' + n).classList.add('active');

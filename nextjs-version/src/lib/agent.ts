@@ -1,12 +1,10 @@
 /**
  * 晴愈AI智能体 — Agent Core
- * 基于标签协议的工具调用循环
+ * 通过 API Route 代理的工具调用循环
  */
 
-import { callAIStream } from './api';
-import { AGENT_SYSTEM_PROMPT } from './prompt';
+import { getApiKey, getRecords } from './storage';
 import { PsyMemory } from './memory';
-import { getRecords } from './storage';
 import { EMOTION_TYPES } from './emotion';
 import { PsyTools } from './tools';
 
@@ -43,14 +41,57 @@ export const PsyAgent = {
 
     try {
       for (let i = 0; i < this.maxIterations; i++) {
-        const systemPrompt = this.buildSystemPrompt();
+        const { memoryContext, historyContext } = this.buildContext();
+        const userApiKey = getApiKey() || undefined;
 
-        let fullReply = '';
-        fullReply = await callAIStream(systemPrompt, this.messages, (token, full) => {
-          this.onToken?.(token, full);
+        const response = await fetch('/api/agent', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            messages: this.messages,
+            memoryContext,
+            historyContext,
+            userApiKey,
+          }),
         });
 
-        const { cleanText, toolCalls } = this.parseToolCalls(fullReply);
+        if (!response.ok) {
+          const err = await response.json().catch(() => ({ error: response.statusText }));
+          throw new Error(err.error || `API 调用失败: ${response.status}`);
+        }
+
+        // 解析 SSE 流
+        const reader = response.body!.getReader();
+        const decoder = new TextDecoder();
+        let buffer = '';
+        let cleanText = '';
+        let toolCalls: Array<{ name: string; params: Record<string, unknown> }> = [];
+
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+
+          buffer += decoder.decode(value, { stream: true });
+          const lines = buffer.split('\n');
+          buffer = lines.pop() || '';
+
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data: ')) continue;
+            const data = trimmed.slice(6);
+            try {
+              const event = JSON.parse(data);
+              if (event.type === 'token') {
+                this.onToken?.(event.text, '');
+              } else if (event.type === 'done') {
+                cleanText = event.cleanText;
+                toolCalls = event.toolCalls;
+              }
+            } catch {
+              // skip
+            }
+          }
+        }
 
         if (toolCalls.length === 0) {
           this.messages.push({ role: 'assistant', content: cleanText });
@@ -71,7 +112,7 @@ export const PsyAgent = {
           toolResults += `\n[工具 ${call.name} 的结果]: ${JSON.stringify(result)}`;
         }
 
-        this.messages.push({ role: 'assistant', content: fullReply });
+        this.messages.push({ role: 'assistant', content: cleanText });
         this.messages.push({
           role: 'user',
           content: `[系统工具执行结果]${toolResults}\n请根据以上工具结果继续回复用户。`,
@@ -84,7 +125,7 @@ export const PsyAgent = {
     this.isProcessing = false;
   },
 
-  buildSystemPrompt(): string {
+  buildContext() {
     const memoryContext = PsyMemory.getContextString();
     const records = getRecords();
     const recentRecords = records.slice(-5);
@@ -101,31 +142,10 @@ export const PsyAgent = {
       });
     }
 
-    return AGENT_SYSTEM_PROMPT.replace(
-      '{{MEMORY_CONTEXT}}',
-      memoryContext || '（暂无记忆）'
-    ).replace('{{HISTORY_CONTEXT}}', historyContext || '（暂无历史记录）');
-  },
-
-  parseToolCalls(text: string) {
-    const calls: Array<{ name: string; params: Record<string, unknown> }> = [];
-    const regex = /<tool\s+name="([^"]+)"(?:\s+params='([^']*)')?>/g;
-    let match;
-    let cleanText = text;
-
-    while ((match = regex.exec(text)) !== null) {
-      const name = match[1];
-      let params = {};
-      try {
-        params = match[2] ? JSON.parse(match[2]) : {};
-      } catch {
-        params = {};
-      }
-      calls.push({ name, params });
-      cleanText = cleanText.replace(match[0], '');
-    }
-
-    return { cleanText, toolCalls: calls };
+    return {
+      memoryContext: memoryContext || '（暂无记忆）',
+      historyContext: historyContext || '（暂无历史记录）',
+    };
   },
 
   clearChat() {

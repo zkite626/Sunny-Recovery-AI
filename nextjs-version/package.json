@@ -1,6 +1,6 @@
 {
   "name": "Sunny-Recovery-AI",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "private": true,
   "scripts": {
     "dev": "next dev",
@@ -9,14 +9,18 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@mediapipe/tasks-vision": "^0.10.35",
     "chart.js": "^4.5.1",
+    "html2canvas": "^1.4.1",
     "next": "16.2.4",
+    "p5": "^2.2.3",
     "react": "19.2.4",
     "react-dom": "19.2.4"
   },
   "devDependencies": {
     "@tailwindcss/postcss": "^4",
     "@types/node": "^20",
+    "@types/p5": "^1.7.7",
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",

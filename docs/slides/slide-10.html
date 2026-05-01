@@ -4,35 +4,53 @@
 <meta charset="UTF-8">
 <link rel="stylesheet" href="common.css">
 <style>
-  .deco-gold { background: #f6a623; width: 500pt; height: 500pt; top: -180pt; right: -150pt; }
-  .deco-green { background: #86c7a3; width: 200pt; height: 200pt; bottom: -60pt; left: -40pt; }
-  .deco-purple { background: #a78bfa; width: 160pt; height: 160pt; top: 60pt; left: 80pt; opacity: 0.05; }
-  .sun-icon { font-size: 64pt; position: absolute; top: 100pt; right: 140pt; opacity: 0.1; }
-  .center-box { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); text-align: center; width: 600pt; }
-  .closing-title { font-family: 'Noto Serif SC', serif; font-size: 48pt; font-weight: 700; color: #3d2e1f; line-height: 1.3; }
-  .closing-title em { font-style: normal; color: #f6a623; }
-  .closing-sub { font-size: 16pt; color: #7a6b5d; margin-top: 16pt; line-height: 1.8; }
-  .team-info { position: absolute; bottom: 50pt; left: 50%; transform: translateX(-50%); text-align: center; }
+  .deco-green { background: #86c7a3; width: 200pt; height: 200pt; top: -60pt; right: -40pt; }
+  .content-box { position: absolute; top: 50pt; left: 70pt; right: 70pt; }
+  .stats-row { display: flex; gap: 20pt; margin-top: 28pt; }
+  .stat-card { flex: 1; padding: 24pt; border-radius: 14pt; background: rgba(255,255,255,0.7); border: 1px solid rgba(0,0,0,0.04); text-align: center; }
+  .stat-num { font-family: 'Noto Serif SC', serif; font-size: 40pt; font-weight: 700; line-height: 1; }
+  .stat-unit { font-size: 14pt; font-weight: 400; }
+  .stat-label { font-size: 12pt; color: #7a6b5d; margin-top: 8pt; }
+  .stat-desc { font-size: 10pt; color: #b8a99a; margin-top: 4pt; }
+  .quote-box { margin-top: 28pt; padding: 20pt 28pt; border-radius: 12pt; background: rgba(246,166,35,0.06); border: 1px solid rgba(246,166,35,0.12); }
+  .quote-mark { font-family: 'Noto Serif SC', serif; font-size: 28pt; color: #f6a623; opacity: 0.3; line-height: 1; }
+  .quote-text { font-family: 'Noto Serif SC', serif; font-size: 14pt; color: #3d2e1f; line-height: 1.8; margin-top: 4pt; }
+  .page-num { position: absolute; bottom: 20pt; right: 30pt; font-size: 9pt; color: #b8a99a; }
 </style>
 </head>
 <body>
-  <div class="deco-circle deco-gold"></div>
   <div class="deco-circle deco-green"></div>
-  <div class="deco-circle deco-purple"></div>
-  <div class="sun-icon">☀</div>
 
-  <div class="center-box">
-    <div class="closing-title">直面情绪<br><em>向阳而生</em></div>
-    <p class="closing-sub">让每一个大学生，都能拥有一个温暖的心理健康伙伴</p>
-    <div style="margin-top:32pt;">
-      <div class="divider" style="background: linear-gradient(90deg, #f6a623, #86c7a3); margin: 0 auto;"></div>
+  <div class="content-box">
+    <div style="margin-bottom:6pt;"><span class="badge">实践成果</span></div>
+    <h2>连续 7 天实践，效果显著</h2>
+    <p style="margin-top:4pt; font-size:12pt;">小组成员亲身实践数据</p>
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num" style="color:#86c7a3;">65<span class="stat-unit">%</span></div>
+        <div class="stat-label">内耗频率下降</div>
+        <p class="stat-desc">从每天多次内耗<br>减少到偶尔发生</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:#f6a623;">↑</div>
+        <div class="stat-label">任务启动速度提升</div>
+        <p class="stat-desc">拖延时间明显缩短<br>行动力增强</p>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num" style="color:#a78bfa;">↓</div>
+        <div class="stat-label">焦虑自评分数降低</div>
+        <p class="stat-desc">自我报告焦虑水平<br>持续下降</p>
+      </div>
     </div>
-    <p style="margin-top:20pt; font-size:13pt; color:#b8a99a;">晴愈AI · 心理健康智能伙伴</p>
+
+    <div class="quote-box">
+      <div class="quote-mark">"</div>
+      <p class="quote-text">做完 5 步疗愈流程后，我发现自己「来不及了」的想法变少了，开始做事变得更果断了。</p>
+      <p style="font-size:10pt; color:#b8a99a; margin-top:8pt;">—— 实践参与者反馈</p>
+    </div>
   </div>
 
-  <div class="team-info">
-    <p style="font-size:12pt; color:#b8a99a;">心晴小队 · 南宁师范大学 · 2026年4月</p>
-    <p style="font-size:10pt; color:#b8a99a; margin-top:4pt;">李悦（组长）王梓 · 陈曦</p>
-  </div>
+  <div class="page-num">09</div>
 </body>
 </html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>情绪日历 · 晴愈AI</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="icon" href="assets/favicon.ico" type="image/x-icon">
+  <link rel="apple-touch-icon" href="assets/logo.png">
+  <style>
+    .cal-nav { display:flex; justify-content:space-between; align-items:center; margin-bottom:var(--sp-3); }
+    .cal-grid { width:100%; }
+    .cal-weekdays { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; margin-bottom:var(--sp-1); }
+    .cal-weekday { text-align:center; font-size:var(--text-xs); color:var(--text-ghost); font-weight:600; padding:var(--sp-1) 0; }
+    .cal-week { display:grid; grid-template-columns:repeat(7,1fr); gap:2px; }
+    .cal-day { aspect-ratio:1; display:flex; flex-direction:column; align-items:center; justify-content:center; border-radius:var(--radius-sm); cursor:pointer; font-size:var(--text-sm); min-height:44px; transition:transform 0.15s; }
+    .cal-day:hover { transform:scale(1.1); }
+    .cal-day.today { outline:2px solid var(--sun-core); outline-offset:-2px; }
+    .cal-day-num { font-weight:500; z-index:1; }
+    .cal-day-dot { width:4px; height:4px; border-radius:50%; background:var(--text-primary); margin-top:2px; }
+    .cal-day.has-record .cal-day-num { font-weight:700; }
+    .cal-streak { display:flex; justify-content:space-around; text-align:center; margin-bottom:var(--sp-4); }
+    .cal-streak-num { font-size:var(--text-2xl); font-weight:700; }
+    .cal-detail { margin-bottom:var(--sp-4); }
+    .cal-dist { display:flex; flex-wrap:wrap; gap:var(--sp-2); }
+    .cal-dist-tag { display:flex; align-items:center; gap:var(--sp-1); }
+    .cal-dist-dot { width:10px; height:10px; border-radius:50%; }
+    .cal-badges { display:grid; grid-template-columns:repeat(2,1fr); gap:var(--sp-3); }
+    .cal-badge { text-align:center; padding:var(--sp-3); font-size:var(--text-sm); }
+    .cal-badge-icon { font-size:1.5rem; }
+    .cal-badge-title { font-weight:600; margin-top:var(--sp-1); }
+  </style>
+</head>
+<body>
+  <div class="sunshine"><div class="orb orb--1"></div><div class="orb orb--2"></div></div>
+  <div class="grain"></div>
+  <div class="app">
+    <div class="page page-enter">
+      <div class="nav-bar">
+        <a href="index.html" class="btn btn-ghost btn-sm">🏠 首页</a>
+        <a href="dashboard.html" class="btn btn-ghost btn-sm">📈 记录</a>
+      </div>
+
+      <h2 class="heading-section text-center" style="margin-bottom:var(--sp-2);">📅 情绪日历</h2>
+
+      <!-- Streak -->
+      <div class="glass cal-streak" style="padding:var(--sp-5);">
+        <div><div class="cal-streak-num" style="color:var(--sun-core);" id="streakCurrent">0</div><div class="text-caption">当前连续</div></div>
+        <div style="width:1px; background:var(--glass-border);"></div>
+        <div><div class="cal-streak-num" style="color:var(--coral);" id="streakLongest">0</div><div class="text-caption">最长连续</div></div>
+        <div style="width:1px; background:var(--glass-border);"></div>
+        <div><div class="cal-streak-num" id="totalRecords">0</div><div class="text-caption">总记录</div></div>
+      </div>
+
+      <!-- Month nav -->
+      <div class="cal-nav">
+        <button class="btn btn-ghost btn-sm" onclick="goPrev()">←</button>
+        <span style="font-weight:600; font-size:var(--text-lg);" id="monthLabel"></span>
+        <button class="btn btn-ghost btn-sm" onclick="goNext()">→</button>
+      </div>
+
+      <!-- Calendar -->
+      <div class="glass" style="padding:var(--sp-4); margin-bottom:var(--sp-4);">
+        <div class="cal-grid" id="calGrid"></div>
+      </div>
+
+      <!-- Selected day -->
+      <div class="glass cal-detail" id="dayDetail" style="padding:var(--sp-5); display:none;">
+        <div style="font-weight:600; margin-bottom:var(--sp-3);" id="dayDate"></div>
+        <div id="dayRecords"></div>
+      </div>
+
+      <!-- Emotion distribution -->
+      <div class="glass" id="distSection" style="padding:var(--sp-5); margin-bottom:var(--sp-4); display:none;">
+        <div style="font-weight:600; margin-bottom:var(--sp-3);">本月情绪分布</div>
+        <div class="cal-dist" id="distTags"></div>
+      </div>
+
+      <!-- Badges -->
+      <button class="btn btn-ghost btn-sm" style="width:100%; margin-bottom:var(--sp-3);" onclick="toggleBadges()">🏆 成就徽章 (<span id="badgeCount">0</span>/8)</button>
+      <div class="glass" id="badgesSection" style="padding:var(--sp-5); margin-bottom:var(--sp-4); display:none;">
+        <div class="cal-badges" id="badgesGrid"></div>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/storage.js"></script>
+  <script>
+    const EMOTION_TYPES = [
+      {id:'anxiety',label:'焦虑',emoji:'😰',color:'#f6a623'},{id:'frustration',label:'烦躁',emoji:'😤',color:'#f87171'},
+      {id:'sadness',label:'低落',emoji:'😢',color:'#a78bfa'},{id:'loneliness',label:'孤独',emoji:'🥺',color:'#7dd3fc'},
+      {id:'anger',label:'愤怒',emoji:'😠',color:'#ef4444'},{id:'self-doubt',label:'自我怀疑',emoji:'😞',color:'#fda085'},
+      {id:'burnout',label:'疲惫内耗',emoji:'😩',color:'#b8a99a'},{id:'fear',label:'恐惧',emoji:'😨',color:'#86c7a3'}
+    ];
+    const BADGES = [
+      {id:'streak_3',icon:'🔥',title:'三日坚持',desc:'连续3天'},{id:'streak_7',icon:'⭐',title:'一周达人',desc:'连续7天'},
+      {id:'streak_30',icon:'👑',title:'月度冠军',desc:'连续30天'},{id:'first_assessment',icon:'🔍',title:'初识自我',desc:'首次测评'},
+      {id:'first_meditation',icon:'🧘',title:'冥想入门',desc:'首次冥想'},{id:'first_art',icon:'🎨',title:'艺术之心',desc:'首幅涂鸦'},
+      {id:'mood_improver',icon:'📈',title:'情绪提升者',desc:'10次下降'},{id:'gratitude_master',icon:'🌿',title:'感恩达人',desc:'30条感恩'}
+    ];
+    const WEEKDAYS = ['一','二','三','四','五','六','日'];
+
+    let curYear, curMonth;
+    const now = new Date();
+    curYear = now.getFullYear(); curMonth = now.getMonth();
+
+    function toDateKey(d){return d.getFullYear()+'-'+String(d.getMonth()+1).padStart(2,'0')+'-'+String(d.getDate()).padStart(2,'0');}
+    const todayKey = toDateKey(now);
+
+    function getMeditationTs(){try{return JSON.parse(localStorage.getItem('moodcoach_meditations')||'[]').map(m=>m.completedAt);}catch{return[];}}
+    function getGratitudeTs(){try{return JSON.parse(localStorage.getItem('moodcoach_gratitude')||'[]').map(g=>g.timestamp);}catch{return[];}}
+
+    function calcStreak(){
+      const days=new Set();
+      getRecords().forEach(r=>days.add(toDateKey(new Date(r.timestamp))));
+      getMeditationTs().forEach(t=>days.add(toDateKey(new Date(t))));
+      getGratitudeTs().forEach(t=>days.add(toDateKey(new Date(t))));
+      if(days.size===0)return{current:0,longest:0};
+      const sorted=Array.from(days).sort().reverse();
+      let current=0;
+      if(sorted[0]===todayKey||sorted[0]===toDateKey(new Date(Date.now()-86400000))){
+        let d=sorted[0]===todayKey?new Date():new Date(Date.now()-86400000);
+        for(let i=0;i<365;i++){const k=toDateKey(d);if(days.has(k)){current++;d=new Date(d.getTime()-86400000);}else break;}
+      }
+      const asc=Array.from(days).sort();let longest=1,streak=1;
+      for(let i=1;i<asc.length;i++){if(new Date(asc[i]).getTime()-new Date(asc[i-1]).getTime()===86400000){streak++;longest=Math.max(longest,streak);}else streak=1;}
+      return{current,longest:Math.max(longest,current)};
+    }
+
+    function render(){
+      document.getElementById('monthLabel').textContent=curYear+'年'+(curMonth+1)+'月';
+      const records=getRecords().filter(r=>{const d=new Date(r.timestamp);return d.getFullYear()===curYear&&d.getMonth()===curMonth;});
+      const byDay={};records.forEach(r=>{const k=toDateKey(new Date(r.timestamp));if(!byDay[k])byDay[k]=[];byDay[k].push(r);});
+
+      const first=new Date(curYear,curMonth,1),last=new Date(curYear,curMonth+1,0);
+      const startWD=(first.getDay()+6)%7;
+      let html='<div class="cal-weekdays">'+WEEKDAYS.map(d=>`<div class="cal-weekday">${d}</div>`).join('')+'</div>';
+      let row=new Array(startWD).fill(null);
+      for(let day=1;day<=last.getDate();day++){row.push(day);if(row.length===7){html+=renderWeek(row,byDay);row=[];}}
+      if(row.length>0){while(row.length<7)row.push(null);html+=renderWeek(row,byDay);}
+      document.getElementById('calGrid').innerHTML=html;
+
+      // Streak
+      const s=calcStreak();
+      document.getElementById('streakCurrent').textContent=s.current;
+      document.getElementById('streakLongest').textContent=s.longest;
+      document.getElementById('totalRecords').textContent=getRecords().length;
+
+      // Distribution
+      const counts={};records.forEach(r=>{if(r.emotionType)counts[r.emotionType]=(counts[r.emotionType]||0)+1;});
+      const dist=EMOTION_TYPES.filter(e=>counts[e.id]).sort((a,b)=>counts[b.id]-counts[a.id]);
+      const distEl=document.getElementById('distSection');
+      if(dist.length>0){distEl.style.display='block';document.getElementById('distTags').innerHTML=dist.map(e=>`<span class="tag cal-dist-tag"><span class="cal-dist-dot" style="background:${e.color}"></span>${e.emoji} ${e.label} ×${counts[e.id]}</span>`).join('');}
+      else distEl.style.display='none';
+
+      // Badges
+      renderBadges(s);
+    }
+
+    function renderWeek(row,byDay){
+      let html='<div class="cal-week">';
+      row.forEach(day=>{
+        if(day===null){html+='<div class="cal-day"></div>';return;}
+        const dk=curYear+'-'+String(curMonth+1).padStart(2,'0')+'-'+String(day).padStart(2,'0');
+        const dr=byDay[dk]||[];
+        let color='',opacity=1;
+        if(dr.length>0){
+          const counts={};dr.forEach(r=>{if(r.emotionType)counts[r.emotionType]=(counts[r.emotionType]||0)+1;});
+          const top=Object.entries(counts).sort((a,b)=>b[1]-a[1])[0];
+          const emo=EMOTION_TYPES.find(e=>e.id===top[0]);
+          color=emo?emo.color:'#d1d5db';
+          opacity=Math.max(0.3,dr.reduce((s,r)=>s+(r.intensityBefore||5),0)/dr.length/10);
+        }
+        html+=`<div class="cal-day${dk===todayKey?' today':''}${dr.length>0?' has-record':''}" style="${color?'background:'+color+';opacity:'+opacity:''}" onclick="showDay('${dk}')"><span class="cal-day-num">${day}</span>${dr.length>0?'<span class="cal-day-dot"></span>':''}</div>`;
+      });
+      return html+'</div>';
+    }
+
+    function showDay(dk){
+      const records=getRecords().filter(r=>toDateKey(new Date(r.timestamp))===dk);
+      const el=document.getElementById('dayDetail');el.style.display='block';
+      document.getElementById('dayDate').textContent=dk;
+      document.getElementById('dayRecords').innerHTML=records.length===0?'<p class="text-caption">这天没有记录</p>':
+        records.map(r=>{const e=EMOTION_TYPES.find(x=>x.id===r.emotionType);return`<div style="margin-bottom:var(--sp-2);font-size:var(--text-sm);">${e?.emoji||''} ${e?.label||'未知'} · 强度 ${r.intensityBefore}→${r.intensityAfter}${r.emotionText?' · '+r.emotionText.slice(0,30):''}</div>`;}).join('');
+    }
+
+    function goPrev(){if(curMonth===0){curYear--;curMonth=11;}else curMonth--;document.getElementById('dayDetail').style.display='none';render();}
+    function goNext(){if(curMonth===11){curYear++;curMonth=0;}else curMonth++;document.getElementById('dayDetail').style.display='none';render();}
+
+    // Swipe
+    let touchX=0;
+    document.addEventListener('touchstart',e=>{touchX=e.touches[0].clientX;},{passive:true});
+    document.addEventListener('touchend',e=>{const dx=e.changedTouches[0].clientX-touchX;if(Math.abs(dx)>60){dx>0?goPrev():goNext();}},{passive:true});
+
+    // Badges
+    function renderBadges(s){
+      try{
+        const earned=JSON.parse(localStorage.getItem('moodcoach_achievements')||'[]');
+        const medCount=getMeditationTs().length, artCount=JSON.parse(localStorage.getItem('moodcoach_art_gallery')||'[]').length, gratCount=getGratitude().length, assessCount=getAssessmentResults().length;
+        let intensityDown=0;getRecords().forEach(r=>{if(r.intensityBefore&&r.intensityAfter&&r.intensityAfter<r.intensityBefore)intensityDown++;});
+        const conds={streak_3:s.current>=3||s.longest>=3,streak_7:s.current>=7||s.longest>=7,streak_30:s.current>=30||s.longest>=30,first_assessment:assessCount>=1,first_meditation:medCount>=1,first_art:artCount>=1,mood_improver:intensityDown>=10,gratitude_master:gratCount>=30};
+        const newly=BADGES.filter(b=>conds[b.id]&&!earned.includes(b.id));
+        if(newly.length>0){newly.forEach(b=>earned.push(b.id));localStorage.setItem('moodcoach_achievements',JSON.stringify(earned));}
+        document.getElementById('badgeCount').textContent=earned.length;
+        document.getElementById('badgesGrid').innerHTML=BADGES.map(b=>`<div class="cal-badge glass" style="opacity:${earned.includes(b.id)?1:0.4}"><div class="cal-badge-icon">${b.icon}</div><div class="cal-badge-title">${b.title}</div><div class="text-caption">${b.desc}</div></div>`).join('');
+      }catch{}
+    }
+    function toggleBadges(){const s=document.getElementById('badgesSection');s.style.display=s.style.display==='none'?'block':'none';}
+
+    render();
+  </script>
+</body>
+</html>

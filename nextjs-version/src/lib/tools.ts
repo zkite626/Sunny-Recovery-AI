@@ -2,10 +2,8 @@
  * 晴愈AI智能体 — 工具注册表
  */
 
-import { getCurrent, saveCurrent, saveGratitude, getRecords } from './storage';
+import { getCurrent, saveCurrent, saveGratitude, getRecords, getApiKey } from './storage';
 import { generateSummary, EMOTION_TYPES } from './emotion';
-import { LITERATURE_SYSTEM_PROMPT } from './prompt';
-import { callAI } from './api';
 import { PsyMemory } from './memory';
 
 type ToolHandler = (params: Record<string, unknown>) => Promise<Record<string, unknown>>;
@@ -42,7 +40,7 @@ PsyTools.register('body_scan', async (params) => {
 // 2. 生成情绪卡片
 PsyTools.register('generate_card', async (params) => {
   const session = getCurrent();
-  const summary = generateSummary(session);
+  generateSummary(session);
   saveCurrent({
     oldThought: (params.old_thought as string) || '我什么都做不好',
     newThought: (params.new_thought as string) || '我可以从一件小事开始',
@@ -56,15 +54,17 @@ PsyTools.register('generate_card', async (params) => {
 PsyTools.register('generate_comfort', async (params) => {
   const session = getCurrent();
   const emotion = EMOTION_TYPES.find((e) => e.id === session.emotionType);
-  const context = `用户情绪：${emotion?.label || '未指定'}，强度${session.intensity || 5}/10。${session.emotionText || ''}`;
+  const context = `请为用户创作一段治愈文字。用户情绪：${emotion?.label || '未指定'}，强度${session.intensity || 5}/10。${session.emotionText || ''}。${params.theme ? '主题偏好：' + params.theme : ''}`;
 
   try {
-    const text = await callAI(LITERATURE_SYSTEM_PROMPT, [
-      {
-        role: 'user',
-        content: `请为用户创作一段治愈文字。${context}。${params.theme ? '主题偏好：' + params.theme : ''}`,
-      },
-    ]);
+    const res = await fetch('/api/comfort', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ context, userApiKey: getApiKey() || undefined }),
+    });
+    if (!res.ok) throw new Error('API 调用失败');
+    const data = await res.json();
+    const text = data.text;
     saveCurrent({ literaryText: text });
     return { status: 'success', text };
   } catch (err) {
@@ -135,4 +135,28 @@ PsyTools.register('quick_mood', async (params) => {
     startTime: new Date().toISOString(),
   });
   return { status: 'recorded', emotion: params.emotion, intensity: params.intensity };
+});
+
+// 11. 开始冥想
+PsyTools.register('start_meditation', async () => {
+  if (typeof window !== 'undefined') window.location.href = '/meditation';
+  return { status: 'redirected', page: 'meditation' };
+});
+
+// 12. 情绪涂鸦
+PsyTools.register('start_art', async () => {
+  if (typeof window !== 'undefined') window.location.href = '/art';
+  return { status: 'redirected', page: 'art' };
+});
+
+// 13. 沉浸式互动
+PsyTools.register('start_calm', async () => {
+  if (typeof window !== 'undefined') window.location.href = '/calm';
+  return { status: 'redirected', page: 'calm' };
+});
+
+// 14. 查看情绪日历
+PsyTools.register('show_calendar', async () => {
+  if (typeof window !== 'undefined') window.location.href = '/calendar';
+  return { status: 'redirected', page: 'calendar' };
 });

@@ -6,7 +6,7 @@
 const STORAGE_KEYS = {
   RECORDS: 'moodcoach_records',
   CURRENT: 'moodcoach_current',
-  API_KEY: 'deepseek_api_key'
+  API_KEY: 'API_KEY'
 };
 
 /**

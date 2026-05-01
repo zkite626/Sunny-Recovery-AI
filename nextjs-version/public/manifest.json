@@ -1,0 +1,16 @@
+{
+  "name": "晴愈AI",
+  "short_name": "晴愈",
+  "description": "心理健康智能伙伴 — 基于AI与CBT的情绪疗愈工具",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#fdf8f0",
+  "theme_color": "#f6a623",
+  "icons": [
+    {
+      "src": "/favicon.ico",
+      "sizes": "any",
+      "type": "image/x-icon"
+    }
+  ]
+}

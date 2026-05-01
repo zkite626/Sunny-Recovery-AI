@@ -4,8 +4,8 @@ import Link from 'next/link';
 import { useState, useRef, useEffect } from 'react';
 import { getCurrent, saveCurrent } from '@/lib/storage';
 import { EMOTION_TYPES, BODY_ZONES } from '@/lib/emotion';
-import { callAI, callAIStream } from '@/lib/api';
-import { CBT_SYSTEM_PROMPT, detectCrisis, getCrisisResponse } from '@/lib/prompt';
+import { detectCrisis, getCrisisResponse } from '@/lib/prompt';
+import { getApiKey } from '@/lib/storage';
 import ProgressBar from '@/components/ProgressBar';
 
 const MAX_ROUNDS = 3;
@@ -131,7 +131,34 @@ export default function Step3Page() {
         const session = getCurrent();
         const messages = buildMessages(session);
         messages.push({ role: 'user', content: text });
-        const reply = await callAI(CBT_SYSTEM_PROMPT, messages);
+        const res = await fetch('/api/cbt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages, userApiKey: getApiKey() || undefined }),
+        });
+        if (!res.ok) throw new Error('API 调用失败');
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+        let reply = '';
+        let buf = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          const lines = buf.split('\n');
+          buf = lines.pop() || '';
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data: ')) continue;
+            const d = trimmed.slice(6);
+            if (d === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(d);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (delta) reply += delta;
+            } catch { /* skip */ }
+          }
+        }
         removeLoading();
         addAiBubble(reply);
         saveCurrent({ aiReply: reply, chatHistory: messages });
@@ -153,13 +180,37 @@ export default function Step3Page() {
       const session = getCurrent();
       const messages = buildMessages(session);
       messages.push({ role: 'user', content: text });
-      const reply = await callAIStream(
-        CBT_SYSTEM_PROMPT,
-        messages,
-        (_token: string, full: string) => {
-          updateStreamingBubble(full);
+      const res = await fetch('/api/cbt', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages, userApiKey: getApiKey() || undefined }),
+      });
+      if (!res.ok) throw new Error('API 调用失败');
+      const reader = res.body!.getReader();
+      const decoder = new TextDecoder();
+      let reply = '';
+      let buf = '';
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        buf += decoder.decode(value, { stream: true });
+        const lines = buf.split('\n');
+        buf = lines.pop() || '';
+        for (const line of lines) {
+          const trimmed = line.trim();
+          if (!trimmed || !trimmed.startsWith('data: ')) continue;
+          const d = trimmed.slice(6);
+          if (d === '[DONE]') continue;
+          try {
+            const parsed = JSON.parse(d);
+            const delta = parsed.choices?.[0]?.delta?.content;
+            if (delta) {
+              reply += delta;
+              updateStreamingBubble(reply);
+            }
+          } catch { /* skip */ }
         }
-      );
+      }
       finalizeStreamingBubble();
       addAiBubble(reply);
       saveCurrent({ aiReply: reply, chatHistory: messages });
@@ -208,12 +259,39 @@ export default function Step3Page() {
 
     addUserBubble(contextMsg);
 
-    // First AI call (non-streaming)
+    // First AI call (non-streaming via /api/cbt)
     (async () => {
       addLoading();
       try {
         const messages = [{ role: 'user', content: contextMsg }];
-        const reply = await callAI(CBT_SYSTEM_PROMPT, messages);
+        const res = await fetch('/api/cbt', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ messages, userApiKey: getApiKey() || undefined }),
+        });
+        if (!res.ok) throw new Error('API 调用失败');
+        const reader = res.body!.getReader();
+        const decoder = new TextDecoder();
+        let reply = '';
+        let buf = '';
+        while (true) {
+          const { done, value } = await reader.read();
+          if (done) break;
+          buf += decoder.decode(value, { stream: true });
+          const lines = buf.split('\n');
+          buf = lines.pop() || '';
+          for (const line of lines) {
+            const trimmed = line.trim();
+            if (!trimmed || !trimmed.startsWith('data: ')) continue;
+            const d = trimmed.slice(6);
+            if (d === '[DONE]') continue;
+            try {
+              const parsed = JSON.parse(d);
+              const delta = parsed.choices?.[0]?.delta?.content;
+              if (delta) reply += delta;
+            } catch { /* skip */ }
+          }
+        }
         removeLoading();
         addAiBubble(reply);
         roundCountRef.current = 1;

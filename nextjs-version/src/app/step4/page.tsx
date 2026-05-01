@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { getCurrent, saveCurrent } from '@/lib/storage';
 import { EMOTION_TYPES } from '@/lib/emotion';
-import { callAI } from '@/lib/api';
-import { LITERATURE_SYSTEM_PROMPT } from '@/lib/prompt';
+import { getApiKey } from '@/lib/storage';
 import ProgressBar from '@/components/ProgressBar';
 
 export default function Step4Page() {
@@ -69,9 +68,17 @@ export default function Step4Page() {
         .filter(Boolean)
         .join('\n');
 
-      const text = await callAI(LITERATURE_SYSTEM_PROMPT, [
-        { role: 'user', content: context },
-      ]);
+      const res = await fetch('/api/comfort', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ context, userApiKey: getApiKey() || undefined }),
+      });
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({ error: 'API 调用失败' }));
+        throw new Error(err.error || 'API 调用失败');
+      }
+      const data = await res.json();
+      const text = data.text;
 
       setLiteraryText(text);
       setLoaded(true);
@@ -105,11 +112,10 @@ export default function Step4Page() {
   }, [literaryText]);
 
   const saveAsImage = useCallback(async () => {
-    const card = document.querySelector('.literary-card');
+    const card = document.querySelector('.literary-card') as HTMLElement;
     if (!card) return;
 
     try {
-      // @ts-expect-error html2canvas is loaded externally
       const html2canvas = (await import('html2canvas')).default;
       const canvas = await html2canvas(card, {
         backgroundColor: '#fdf6ec',

@@ -1,10 +1,9 @@
+@import url('https://fonts.loli.net/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap');
 @import "tailwindcss";
 
 /* ═══════════════════════════════════════════════════════════
    晴愈AI — Sunny Healing Design System
    ═══════════════════════════════════════════════════════════ */
-
-@import url('https://fonts.googleapis.com/css2?family=Noto+Serif+SC:wght@400;600;700&family=ZCOOL+XiaoWei&display=swap');
 
 :root {
   --canvas: #fdf8f0;
@@ -396,10 +395,15 @@ body {
 .hero { display: flex; flex-direction: column; align-items: center; text-align: center; padding: var(--sp-12) var(--sp-6) var(--sp-8); gap: var(--sp-8); max-width: 600px; margin: 0 auto; }
 
 .hero-badge {
-  display: inline-flex; align-items: center; gap: var(--sp-2); padding: var(--sp-2) var(--sp-5);
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: var(--sp-2) var(--sp-4);
   border-radius: var(--r-full); background: rgba(246,166,35,0.08); border: 1px solid rgba(246,166,35,0.15);
-  font-size: var(--text-xs); color: var(--sun-core); letter-spacing: 0.08em; font-weight: 600;
   animation: fadeDown 0.8s var(--ease-out-expo) both;
+}
+
+.hero-logo {
+  height: 96px; width: auto; object-fit: contain;
+  vertical-align: middle;
 }
 
 @keyframes fadeDown { 0% { opacity: 0; transform: translateY(-10px); } 100% { opacity: 1; transform: translateY(0); } }
@@ -575,10 +579,54 @@ body {
   padding: var(--sp-8) var(--sp-4); line-height: 1.9; max-width: 460px; margin: 0 auto;
 }
 
+/* ── Calendar ── */
+.calendar-grid { width: 100%; }
+.calendar-weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: var(--sp-1); }
+.calendar-weekday { text-align: center; font-size: var(--text-xs); color: var(--text-ghost); font-weight: 600; padding: var(--sp-1) 0; }
+.calendar-week { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; }
+.calendar-day {
+  aspect-ratio: 1; display: flex; flex-direction: column; align-items: center; justify-content: center;
+  border-radius: var(--radius-sm); cursor: pointer; position: relative; font-size: var(--text-sm);
+  transition: transform 0.15s ease; min-height: 44px;
+}
+.calendar-day:hover { transform: scale(1.1); }
+.calendar-day--empty { cursor: default; }
+.calendar-day--empty:hover { transform: none; }
+.calendar-day--today { outline: 2px solid var(--sun-core); outline-offset: -2px; border-radius: var(--radius-sm); }
+.calendar-day-num { font-weight: 500; z-index: 1; }
+.calendar-day-dot { width: 4px; height: 4px; border-radius: 50%; background: var(--text-primary); margin-top: 2px; }
+.calendar-day--has-record .calendar-day-num { color: var(--text-primary); font-weight: 700; }
+
+/* ── Bottom Navigation ── */
+.bottom-nav {
+  display: none; position: fixed; bottom: 0; left: 0; right: 0; z-index: 100;
+  padding: var(--sp-2) 0 calc(var(--sp-2) + env(safe-area-inset-bottom, 0px));
+  background: rgba(253,248,240,0.95); backdrop-filter: blur(16px);
+  border-top: 1px solid rgba(0,0,0,0.06);
+}
+.bottom-nav-item {
+  flex: 1; display: flex; flex-direction: column; align-items: center;
+  gap: 2px; text-decoration: none; padding: var(--sp-1) 0;
+  transition: color 0.2s; -webkit-tap-highlight-color: transparent;
+}
+.bottom-nav-icon { font-size: 1.3rem; line-height: 1; }
+.bottom-nav-label { font-size: var(--text-xs); line-height: 1; }
+
 /* ── Responsive ── */
+@media (max-width: 375px) {
+  :root { --text-4xl: 1.75rem; --text-5xl: 2.2rem; }
+  .page { padding: var(--sp-5) var(--sp-3) calc(var(--sp-5) + 76px + env(safe-area-inset-bottom, 0px)); }
+  .glass { padding: var(--sp-5); }
+  .module-grid { grid-template-columns: repeat(2, 1fr); gap: var(--sp-2); }
+  .module-card { padding: var(--sp-4) var(--sp-3); }
+  .hero { padding: var(--sp-6) var(--sp-3) var(--sp-5); gap: var(--sp-5); }
+  .hero-title { font-size: 1.8rem; }
+  .disclaimer { padding-bottom: calc(var(--sp-8) + 76px + env(safe-area-inset-bottom, 0px)); }
+}
+
 @media (max-width: 640px) {
   :root { --text-4xl: 2rem; --text-5xl: 2.5rem; }
-  .page { padding: var(--sp-6) var(--sp-4); }
+  .page { padding: var(--sp-6) var(--sp-4) calc(var(--sp-6) + 76px + env(safe-area-inset-bottom, 0px)); }
   .glass { padding: var(--sp-6); }
   .module-grid { grid-template-columns: repeat(2, 1fr); }
   .dashboard-stat-grid { grid-template-columns: repeat(3, 1fr); }
@@ -588,4 +636,30 @@ body {
   .dashboard-record-emoji { width: 36px; height: 36px; font-size: 1.3rem; }
   .chart-container { padding: var(--sp-4); }
   .hero { padding: var(--sp-8) var(--sp-4) var(--sp-6); gap: var(--sp-6); }
+  .disclaimer { padding-bottom: calc(var(--sp-8) + 76px + env(safe-area-inset-bottom, 0px)); }
+  .bottom-nav { display: flex; }
+  .chat-input-bar { padding-bottom: calc(var(--sp-3) + 76px + env(safe-area-inset-bottom, 0px)); }
+}
+
+@media (min-width: 641px) and (max-width: 768px) {
+  .module-grid { grid-template-columns: repeat(3, 1fr); }
+  .page { max-width: 700px; }
+}
+
+@media (min-width: 769px) and (max-width: 1024px) {
+  .module-grid { grid-template-columns: repeat(3, 1fr); }
+  .page { max-width: 800px; }
+}
+
+@media (min-width: 1025px) {
+  .module-grid { grid-template-columns: repeat(4, 1fr); }
+  .page { max-width: 960px; }
+}
+
+/* ── Touch targets ── */
+@media (pointer: coarse) {
+  button, a.btn, .tag, .assess-option, .module-card, .calendar-day, .bottom-nav-item {
+    min-height: 44px; min-width: 44px;
+  }
+  input[type="range"] { height: 44px; }
 }

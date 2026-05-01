@@ -3,7 +3,7 @@
  * 兼容 OpenAI Chat Completions 格式，支持流式输出
  */
 
-const API_KEY = localStorage.getItem('deepseek_api_key') || '';
+const API_KEY = localStorage.getItem('API_KEY') || '';
 
 const API_BASE = 'https://api.deepseek.com/v1';
 const MODEL = 'deepseek-v4-flash';
@@ -12,14 +12,14 @@ const MODEL = 'deepseek-v4-flash';
  * 设置 API Key（首次使用时调用）
  */
 function setApiKey(key) {
-  localStorage.setItem('deepseek_api_key', key);
+  localStorage.setItem('API_KEY', key);
 }
 
 /**
  * 获取 API Key
  */
 function getApiKey() {
-  return localStorage.getItem('deepseek_api_key') || '';
+  return localStorage.getItem('API_KEY') || '';
 }
 
 /**

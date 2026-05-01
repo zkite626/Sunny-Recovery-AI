@@ -133,3 +133,27 @@ PsyTools.register('quick_mood', async (params) => {
   });
   return { status: 'recorded', emotion: params.emotion, intensity: params.intensity };
 });
+
+// 11. 开始冥想
+PsyTools.register('start_meditation', async (params) => {
+  window.location.href = 'meditation.html';
+  return { status: 'redirected', page: 'meditation' };
+});
+
+// 12. 情绪涂鸦
+PsyTools.register('start_art', async (params) => {
+  window.location.href = 'art.html';
+  return { status: 'redirected', page: 'art' };
+});
+
+// 13. 沉浸式互动
+PsyTools.register('start_calm', async (params) => {
+  window.location.href = 'calm.html';
+  return { status: 'redirected', page: 'calm' };
+});
+
+// 14. 查看情绪日历
+PsyTools.register('show_calendar', async (params) => {
+  window.location.href = 'calendar.html';
+  return { status: 'redirected', page: 'calendar' };
+});
