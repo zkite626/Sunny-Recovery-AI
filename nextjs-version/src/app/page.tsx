@@ -1,5 +1,6 @@
 'use client';
 
+import { useState } from 'react';
 import Link from 'next/link';
 import ApiKeyModal from '@/components/ApiKeyModal';
 
@@ -17,6 +18,8 @@ const modules = [
 ];
 
 export default function Home() {
+  const [showAuthor, setShowAuthor] = useState(false);
+
   return (
     <>
       <section className="hero">
@@ -53,6 +56,11 @@ export default function Home() {
               <div className="module-desc">{m.desc}</div>
             </Link>
           ))}
+          <button className="module-card glass" onClick={() => setShowAuthor(true)} style={{ background: 'none', border: 'none', cursor: 'pointer', font: 'inherit', color: 'inherit', width: '100%' }}>
+            <span className="module-icon">👤</span>
+            <div className="module-title">关于作者</div>
+            <div className="module-desc">鸢.</div>
+          </button>
         </div>
 
         <div className="text-center">
@@ -64,6 +72,27 @@ export default function Home() {
         本工具基于认知行为疗法（CBT）原理设计，仅供情绪觉察与自我探索参考，<br />
         不能替代专业心理咨询。如遇严重心理困扰，请联系学校心理咨询中心。
       </div>
+
+      {showAuthor && (
+        <div className="modal-overlay open" onClick={(e) => e.target === e.currentTarget && setShowAuthor(false)}>
+          <div className="modal-box" style={{ position: 'relative', textAlign: 'center', maxWidth: 360, padding: 'var(--sp-8) var(--sp-6)' }}>
+            <button className="modal-close" onClick={() => setShowAuthor(false)}>&times;</button>
+            <img src="https://avatars.githubusercontent.com/u/115092674?v=4" alt="作者头像" className="author-avatar" />
+            <h3 className="heading-section" style={{ marginBottom: 'var(--sp-1)', fontSize: 'var(--text-xl)' }}>鸢.</h3>
+            <p className="text-caption" style={{ marginBottom: 'var(--sp-6)', color: 'var(--text-ghost)' }}>开发者 / 创作者</p>
+            <div className="author-links">
+              <div className="author-link-item">
+                <span className="author-link-icon">💬</span>
+                <span>QQ：1832793022</span>
+              </div>
+              <a className="author-link-item" href="https://github.com/zkite626" target="_blank" rel="noopener noreferrer">
+                <span className="author-link-icon">🐙</span>
+                <span>GitHub：zkite626</span>
+              </a>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 }

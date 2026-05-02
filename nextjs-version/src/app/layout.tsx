@@ -6,6 +6,8 @@ import BottomNav from '@/components/BottomNav';
 export const metadata: Metadata = {
   title: '晴愈AI · 直面情绪 向阳而生',
   description: '基于 AI + 认知行为疗法(CBT) 的大学生心理健康辅助工具',
+  authors: [{ name: '鸢.', url: 'https://github.com/zkite626' }],
+  creator: '鸢.',
   manifest: '/manifest.json',
   icons: {
     icon: '/favicon.ico',

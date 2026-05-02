@@ -1270,6 +1270,42 @@ body {
   margin: 0 auto;
 }
 
+/* ── Author Card ── */
+.author-avatar {
+  display: block;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin: 0 auto var(--sp-5);
+  box-shadow: 0 4px 20px rgba(0,0,0,0.12);
+  border: 3px solid var(--accent);
+}
+.author-links {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-2);
+}
+.author-link-item {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-3);
+  padding: var(--sp-3) var(--sp-4);
+  background: rgba(0,0,0,0.03);
+  border-radius: var(--r-lg);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  text-decoration: none;
+  transition: background var(--duration-fast) ease;
+}
+a.author-link-item:hover {
+  background: rgba(0,0,0,0.06);
+}
+.author-link-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
 /* ── Module Hub ───────────────────────────────────────────── */
 .module-grid {
   display: grid;
