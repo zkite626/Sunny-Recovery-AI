@@ -52,8 +52,8 @@
 
       <!-- Input bar: sticky at bottom -->
       <div class="chat-input-bar" id="chatInputBar">
-        <input type="text" class="input-line" id="chatInput"
-          placeholder="写下你的想法..." autocomplete="off">
+        <textarea class="input-line" id="chatInput"
+          placeholder="写下你的想法..." autocomplete="off" rows="1"></textarea>
         <button class="btn btn-sun btn-sm" id="sendBtn" onclick="sendMessage()">发送</button>
       </div>
 
@@ -89,6 +89,10 @@
         e.preventDefault();
         sendMessage();
       }
+    });
+    chatInput.addEventListener('input', () => {
+      chatInput.style.height = 'auto';
+      chatInput.style.height = Math.min(chatInput.scrollHeight, 128) + 'px';
     });
 
     // Auto-start

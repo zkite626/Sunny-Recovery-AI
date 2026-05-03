@@ -113,6 +113,26 @@ export default function CalmPage() {
         />
       )}
 
+      {/* Back button - always visible, independent of controls */}
+      <Link
+        href="/"
+        className="btn btn-ghost btn-sm"
+        style={{
+          position: 'fixed',
+          top: 'var(--sp-4)',
+          left: 'var(--sp-4)',
+          zIndex: 30,
+          minWidth: 44,
+          minHeight: 44,
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+        }}
+        onClick={(e) => e.stopPropagation()}
+      >
+        ← 返回
+      </Link>
+
       {/* Controls overlay */}
       <div
         style={{
@@ -131,16 +151,6 @@ export default function CalmPage() {
           zIndex: 10,
         }}
       >
-        {/* Back button */}
-        <Link
-          href="/"
-          className="btn btn-ghost btn-sm"
-          style={{ position: 'absolute', top: 'var(--sp-4)', left: 'var(--sp-4)', zIndex: 20 }}
-          onClick={(e) => e.stopPropagation()}
-        >
-          ← 返回
-        </Link>
-
         {/* Mode selector */}
         <div style={{ display: 'flex', gap: 'var(--sp-2)' }}>
           {(['mouse', 'touch', 'camera'] as Mode[]).map((m) => (

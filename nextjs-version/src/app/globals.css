@@ -694,3 +694,13 @@ a.author-link-item:hover { background: rgba(0,0,0,0.06); }
   }
   input[type="range"] { height: 44px; }
 }
+
+/* ── Chat Textarea ── */
+.chat-input-bar textarea.input-line {
+  resize: none;
+  min-height: 2.75rem;
+  max-height: 8rem;
+  line-height: 1.5;
+  padding: var(--sp-3) var(--sp-6);
+  overflow-y: auto;
+}

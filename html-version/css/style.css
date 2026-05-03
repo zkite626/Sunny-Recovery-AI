@@ -1655,3 +1655,40 @@ a.author-link-item:hover {
   .disclaimer { padding-bottom: calc(var(--sp-8) + 76px + env(safe-area-inset-bottom, 0px)); }
   .bottom-nav { display: flex; }
 }
+
+/* ── Chat Textarea ── */
+.chat-input-bar textarea.input-line {
+  resize: none;
+  min-height: 2.75rem;
+  max-height: 8rem;
+  line-height: 1.5;
+  padding: var(--sp-3) var(--sp-6);
+  overflow-y: auto;
+}
+
+/* ── Calm Back Button Mobile Fix ── */
+.calm-back {
+  position: fixed;
+  top: var(--sp-4);
+  left: var(--sp-4);
+  z-index: 20;
+  min-width: 44px;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@media (max-width: 480px) {
+  .calm-back {
+    top: var(--sp-3);
+    left: var(--sp-3);
+    font-size: var(--text-sm);
+    padding: var(--sp-2) var(--sp-3);
+  }
+  .calm-hint {
+    top: var(--sp-3);
+    right: var(--sp-3);
+    font-size: 0.65rem;
+  }
+}

@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { getCurrent, saveCurrent } from '@/lib/storage';
 import { EMOTION_TYPES, BODY_ZONES } from '@/lib/emotion';
 import { detectCrisis, getCrisisResponse } from '@/lib/prompt';
@@ -222,12 +222,19 @@ export default function Step3Page() {
     setProcessing(false);
   };
 
-  const handleKeyDown = (e: React.KeyboardEvent<HTMLInputElement>) => {
+  const handleKeyDown = (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
     if (e.key === 'Enter' && !e.shiftKey) {
       e.preventDefault();
       sendMessage();
     }
   };
+
+  const autoResize = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const el = e.target;
+    setInput(el.value);
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+  }, []);
 
   function buildMessages(session: ReturnType<typeof getCurrent>) {
     const msgs: Array<{ role: string; content: string }> = [];
@@ -330,15 +337,15 @@ export default function Step3Page() {
 
       {!completed ? (
         <div className="chat-input-bar">
-          <input
-            type="text"
+          <textarea
             className="input-line"
             placeholder="说说你的想法..."
             value={input}
-            onChange={(e) => setInput(e.target.value)}
+            onChange={autoResize}
             onKeyDown={handleKeyDown}
             autoComplete="off"
             disabled={processing}
+            rows={1}
           />
           <button
             className="btn btn-sun btn-sm"

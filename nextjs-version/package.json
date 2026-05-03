@@ -1,10 +1,10 @@
 {
   "name": "Sunny-Recovery-AI",
-  "version": "0.3.0",
+  "version": "0.3.5",
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "next build",
+    "build": "NODE_NO_WARNINGS=1 next build",
     "start": "next start",
     "lint": "eslint"
   },

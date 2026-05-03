@@ -178,7 +178,7 @@ export default function ChatPage() {
   }, [processing, input, addBubble, addLoading]);
 
   const handleKeyDown = useCallback(
-    (e: React.KeyboardEvent<HTMLInputElement>) => {
+    (e: React.KeyboardEvent<HTMLTextAreaElement>) => {
       if (e.key === 'Enter' && !e.shiftKey) {
         e.preventDefault();
         handleSend();
@@ -186,6 +186,13 @@ export default function ChatPage() {
     },
     [handleSend]
   );
+
+  const autoResize = useCallback((e: React.ChangeEvent<HTMLTextAreaElement>) => {
+    const el = e.target;
+    setInput(el.value);
+    el.style.height = 'auto';
+    el.style.height = Math.min(el.scrollHeight, 128) + 'px';
+  }, []);
 
   useEffect(() => {
     if (mountedRef.current) return;
@@ -273,15 +280,15 @@ export default function ChatPage() {
 
       {/* Input bar */}
       <div className="chat-input-bar">
-        <input
-          type="text"
+        <textarea
           className="input-line"
           placeholder="说说你的感受..."
           value={input}
-          onChange={(e) => setInput(e.target.value)}
+          onChange={autoResize}
           onKeyDown={handleKeyDown}
           autoComplete="off"
           disabled={processing}
+          rows={1}
         />
         <button
           className="btn btn-sun btn-sm"

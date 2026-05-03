@@ -80,24 +80,20 @@ export default function DrawingCanvas({
   const drawCrayon = useCallback((ctx: CanvasRenderingContext2D, x: number, y: number, lastX: number, lastY: number) => {
     const size = sizeRef.current;
     const col = colorRef.current;
-    // Textured dashes
     const dx = x - lastX;
     const dy = y - lastY;
     const dist = Math.sqrt(dx * dx + dy * dy);
-    const steps = Math.max(1, Math.floor(dist / 3));
+    const steps = Math.max(1, Math.floor(dist / 2));
 
     for (let i = 0; i < steps; i++) {
       const t = i / steps;
-      const px = lastX + dx * t + (Math.random() - 0.5) * 2;
-      const py = lastY + dy * t + (Math.random() - 0.5) * 2;
-
-      if (Math.random() > 0.3) {
-        ctx.beginPath();
-        ctx.arc(px, py, size * 0.3 * (0.5 + Math.random() * 0.5), 0, Math.PI * 2);
-        ctx.fillStyle = col;
-        ctx.globalAlpha = 0.4 + Math.random() * 0.3;
-        ctx.fill();
-      }
+      const px = lastX + dx * t + (Math.random() - 0.5) * 1.5;
+      const py = lastY + dy * t + (Math.random() - 0.5) * 1.5;
+      ctx.beginPath();
+      ctx.arc(px, py, size * 0.3 * (0.5 + Math.random() * 0.5), 0, Math.PI * 2);
+      ctx.fillStyle = col;
+      ctx.globalAlpha = 0.5 + Math.random() * 0.2;
+      ctx.fill();
     }
     ctx.globalAlpha = 1;
   }, []);
@@ -150,6 +146,44 @@ export default function DrawingCanvas({
     isDrawingRef.current = true;
     const pos = getPos(e);
     lastPosRef.current = pos;
+    // Draw an initial dot so single taps are visible
+    const canvas = canvasRef.current;
+    if (canvas) {
+      const ctx = canvas.getContext('2d')!;
+      const size = sizeRef.current;
+      const col = colorRef.current;
+      const brush = brushRef.current;
+      if (brush === 'watercolor') {
+        for (let i = 0; i < 6; i++) {
+          ctx.beginPath();
+          ctx.arc(pos.x, pos.y, size * (0.4 + Math.random() * 0.3), 0, Math.PI * 2);
+          ctx.fillStyle = col;
+          ctx.globalAlpha = 0.04 + Math.random() * 0.02;
+          ctx.fill();
+        }
+      } else if (brush === 'oil') {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, size * 0.75, 0, Math.PI * 2);
+        ctx.fillStyle = col;
+        ctx.globalAlpha = 0.8;
+        ctx.fill();
+      } else if (brush === 'crayon') {
+        for (let i = 0; i < 3; i++) {
+          ctx.beginPath();
+          ctx.arc(pos.x + (Math.random() - 0.5) * 2, pos.y + (Math.random() - 0.5) * 2, size * 0.3 * (0.5 + Math.random() * 0.5), 0, Math.PI * 2);
+          ctx.fillStyle = col;
+          ctx.globalAlpha = 0.5 + Math.random() * 0.2;
+          ctx.fill();
+        }
+      } else {
+        ctx.beginPath();
+        ctx.arc(pos.x, pos.y, Math.max(1, size * 0.15), 0, Math.PI * 2);
+        ctx.fillStyle = col;
+        ctx.globalAlpha = 0.8;
+        ctx.fill();
+      }
+      ctx.globalAlpha = 1;
+    }
   }, [getPos]);
 
   const handlePointerMove = useCallback((e: React.PointerEvent) => {
