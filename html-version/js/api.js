@@ -45,7 +45,7 @@ async function callAI(systemPrompt, messages) {
         ...messages
       ],
       temperature: 0.8,
-      max_tokens: 500
+      max_tokens: 1024
     })
   });
 
@@ -82,7 +82,7 @@ async function callAIStream(systemPrompt, messages, onToken) {
         ...messages
       ],
       temperature: 0.8,
-      max_tokens: 500,
+      max_tokens: 1024,
       stream: true
     })
   });

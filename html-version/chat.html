@@ -116,8 +116,10 @@
       onToken(token, full) {
         updateStreamingBubble(full);
       },
-      onMessage(text) {
+      onMessage(text, isFinal) {
         finalizeStreamingBubble();
+        removeToolIndicator();
+        if (isFinal && text.trim()) addBubble('ai', text);
       },
       onToolStart(name, params) {
         showToolIndicator(name);
@@ -215,8 +217,7 @@
 
     function finalizeStreamingBubble() {
       if (streamingBubble) {
-        const cursor = streamingBubble.querySelector('.typewriter-cursor');
-        if (cursor) cursor.remove();
+        streamingBubble.remove();
       }
       streamingBubble = null;
       streamStarted = false;

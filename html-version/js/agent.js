@@ -51,14 +51,14 @@ const PsyAgent = {
         if (toolCalls.length === 0) {
           // 无工具调用，这是最终回复
           this.messages.push({ role: 'assistant', content: cleanText });
-          this.onMessage(cleanText);
+          this.onMessage(cleanText, true);
           break;
         }
 
         // 有工具调用：先显示非工具部分
         if (cleanText.trim()) {
           this.messages.push({ role: 'assistant', content: cleanText });
-          this.onMessage(cleanText);
+          this.onMessage(cleanText, false);
         }
 
         // 执行所有工具

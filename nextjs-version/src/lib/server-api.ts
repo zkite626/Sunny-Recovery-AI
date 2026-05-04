@@ -30,7 +30,7 @@ export function buildPayload(
     model: getModel(),
     messages: [{ role: 'system', content: systemPrompt }, ...messages],
     temperature: opts.temperature ?? 0.8,
-    max_tokens: opts.maxTokens ?? 500,
+    max_tokens: opts.maxTokens ?? 1024,
     stream: opts.stream ?? false,
   };
 }

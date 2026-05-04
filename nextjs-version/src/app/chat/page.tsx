@@ -43,8 +43,6 @@ export default function ChatPage() {
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [input, setInput] = useState('');
   const [processing, setProcessing] = useState(false);
-  const [apiKeyModalOpen, setApiKeyModalOpen] = useState(false);
-
   const messagesRef = useRef<HTMLDivElement>(null);
   const streamingRef = useRef<HTMLDivElement | null>(null);
   const streamStartedRef = useRef(false);
@@ -122,8 +120,7 @@ export default function ChatPage() {
 
   const finalizeStreamingBubble = useCallback(() => {
     if (streamingRef.current) {
-      const cursor = streamingRef.current.querySelector('.typewriter-cursor');
-      if (cursor) cursor.remove();
+      streamingRef.current.remove();
       streamingRef.current = null;
     }
     streamStartedRef.current = false;
@@ -202,8 +199,10 @@ export default function ChatPage() {
       onToken(_token: string, full: string) {
         updateStreamingBubble(full);
       },
-      onMessage(_text: string) {
+      onMessage(text: string, isFinal?: boolean) {
         finalizeStreamingBubble();
+        removeToolIndicator();
+        if (isFinal && text.trim()) addBubble('ai', text);
       },
       onToolStart(name: string) {
         showToolIndicator(name);
@@ -249,12 +248,7 @@ export default function ChatPage() {
         <Link href="/" className="btn btn-ghost btn-sm">
           🏠 首页
         </Link>
-        <button
-          className="btn btn-ghost btn-sm"
-          onClick={() => setApiKeyModalOpen(true)}
-        >
-          🔑 API Key
-        </button>
+        <ApiKeyModal />
       </div>
 
       {/* Chat header */}
@@ -299,17 +293,6 @@ export default function ChatPage() {
         </button>
       </div>
 
-      {/* API Key Modal (inline trigger version) */}
-      {apiKeyModalOpen && (
-        <div
-          className="modal-overlay open"
-          onClick={(e) => {
-            if (e.target === e.currentTarget) setApiKeyModalOpen(false);
-          }}
-        >
-          <ApiKeyModal />
-        </div>
-      )}
     </div>
   );
 }
